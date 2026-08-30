@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "case_id": "midnight_museum",
+  "culprit_id": "rowan_pike",
+  "canonical_sequence": [
+    "Rowan Pike prepared a polarized insert from a catalog image before the gala.",
+    "Rowan entered Gallery 3 alone under the authorized catalog work order.",
+    "While the case was in calibration mode, Rowan taped over the rear contact sensor and opened the service panel.",
+    "Rowan removed Aurora Circuit at 2026-08-30T04:42:18Z and placed the polarized insert in the display guide.",
+    "Rowan moved the 1.84-kilogram sculpture into his hard equipment case and checked that case into the media locker.",
+    "The scheduled blackout later exposed the empty display and misdirected attention toward the lighting system."
+  ],
+  "acceptable_evidence_sets": [
+    ["E01", "E04", "E07"],
+    ["E01", "E06", "E07", "E09"]
+  ],
+  "claim_rules": [
+    {
+      "claim_id": "theft_predates_blackout",
+      "description": "The artwork was removed before the planned blackout.",
+      "accepted_evidence_sets": [["E01"]]
+    },
+    {
+      "claim_id": "contact_sensor_bypassed",
+      "description": "The rear service-panel contact was deliberately bypassed.",
+      "accepted_evidence_sets": [["E02"]]
+    },
+    {
+      "claim_id": "visual_decoy_used",
+      "description": "A polarized image concealed the empty display from the gala viewing line.",
+      "accepted_evidence_sets": [["E03"]]
+    },
+    {
+      "claim_id": "rowan_had_exclusive_opportunity",
+      "description": "Rowan was the only suspect with access at the actual removal time.",
+      "accepted_evidence_sets": [["E04"], ["E06", "E09"]]
+    },
+    {
+      "claim_id": "rowan_false_proximity_statement",
+      "description": "Rowan's statement about remaining three meters away conflicts with his camera record.",
+      "accepted_evidence_sets": [["E05", "E06"]]
+    },
+    {
+      "claim_id": "rowan_transported_artwork",
+      "description": "Rowan's hard case gained the artwork's exact mass before locker intake.",
+      "accepted_evidence_sets": [["E07"]]
+    },
+    {
+      "claim_id": "blackout_was_automatic",
+      "description": "The blackout executed automatically rather than through a manual console command.",
+      "accepted_evidence_sets": [["E08"]]
+    },
+    {
+      "claim_id": "other_suspects_elsewhere",
+      "description": "Independent recordings place Mara, Theo, and Nia away from Gallery 3 at the removal time.",
+      "accepted_evidence_sets": [["E09"]]
+    }
+  ],
+  "contradiction_pairs": [
+    {
+      "statement_evidence_id": "E05",
+      "rebuttal_evidence_ids": ["E06"]
+    }
+  ],
+  "exoneration_rules": [
+    {
+      "suspect_id": "mara_vale",
+      "summary": "The real removal occurred while Mara was continuously visible in the greenroom.",
+      "evidence_ids": ["E01", "E09"]
+    },
+    {
+      "suspect_id": "theo_quinn",
+      "summary": "Theo was in the lighting booth at the removal time, and the later blackout was automatic.",
+      "evidence_ids": ["E08", "E09"]
+    },
+    {
+      "suspect_id": "nia_brooks",
+      "summary": "Nia's body camera places her at the loading bay when the plinth lost its load.",
+      "evidence_ids": ["E09"]
+    }
+  ],
+  "hints": [
+    "Treat the blackout as the discovery time, not necessarily the theft time.",
+    "Compare the plinth's weight change with the Gallery 3 access window.",
+    "Compare Aurora Circuit's mass with the photographer's equipment-case records."
+  ]
+}

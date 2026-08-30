@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "case_id": "midnight_museum",
+  "title": "Midnight at the Lumen Museum",
+  "display_timezone": "America/Los_Angeles",
+  "brief": "At the Lumen Museum gala, a planned ninety-second blackout began at 10:00 p.m. When the lights returned, Aurora Circuit was missing from its display. The secured wing remained closed until the initial investigation began. Four people had relevant access, knowledge, or equipment: curator Mara Vale, lighting technician Theo Quinn, security lead Nia Brooks, and catalog photographer Rowan Pike.",
+  "artwork": {
+    "name": "Aurora Circuit",
+    "mass_kg": 1.84,
+    "dimensions_cm": [28.0, 18.0, 12.0]
+  },
+  "incident": {
+    "discovered_at": "2026-08-30T05:01:34Z",
+    "blackout_started_at": "2026-08-30T05:00:00Z",
+    "blackout_ended_at": "2026-08-30T05:01:30Z"
+  },
+  "suspects": [
+    {
+      "suspect_id": "mara_vale",
+      "name": "Mara Vale",
+      "role": "Curator",
+      "public_profile": "Mara uses she/her pronouns. She approved the catalog shoot and the display case's temporary calibration mode. The exhibition is the centerpiece of her season."
+    },
+    {
+      "suspect_id": "theo_quinn",
+      "name": "Theo Quinn",
+      "role": "Lighting technician",
+      "public_profile": "Theo uses he/him pronouns. He designed the gala lighting sequence and maintains the console that triggered the blackout cue."
+    },
+    {
+      "suspect_id": "nia_brooks",
+      "name": "Nia Brooks",
+      "role": "Security lead",
+      "public_profile": "Nia uses she/her pronouns. She controls the wing's security procedures, supervises equipment screening, and carries master access."
+    },
+    {
+      "suspect_id": "rowan_pike",
+      "name": "Rowan Pike",
+      "role": "Catalog photographer",
+      "public_profile": "Rowan uses he/him pronouns. He photographed Aurora Circuit before the gala and brought a hard equipment case into the secured wing."
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "display_case",
+      "name": "Gallery 3 display case",
+      "description": "The smart-glass case, its rear service panel, and the instrumented plinth."
+    },
+    {
+      "location_id": "media_locker",
+      "name": "Media locker",
+      "description": "The secure locker holding checked camera gear and removable media."
+    },
+    {
+      "location_id": "security_screening",
+      "name": "Security screening station",
+      "description": "The station that records incoming gear and media-locker intake weights."
+    },
+    {
+      "location_id": "lighting_booth",
+      "name": "Lighting booth",
+      "description": "The isolated control room containing the cue console and input audit log."
+    }
+  ],
+  "available_actions": {
+    "location_ids": [
+      "display_case",
+      "media_locker",
+      "security_screening",
+      "lighting_booth"
+    ],
+    "interview_options": [
+      {
+        "suspect_id": "mara_vale",
+        "topic_ids": ["whereabouts", "case_access"]
+      },
+      {
+        "suspect_id": "theo_quinn",
+        "topic_ids": ["whereabouts", "blackout"]
+      },
+      {
+        "suspect_id": "nia_brooks",
+        "topic_ids": ["whereabouts", "security"]
+      },
+      {
+        "suspect_id": "rowan_pike",
+        "topic_ids": ["whereabouts", "equipment"]
+      }
+    ],
+    "timeline_anchor_ids": ["weight_drop", "blackout"]
+  },
+  "observations": [
+    {
+      "evidence_id": "E01",
+      "title": "The plinth lost its load before the blackout",
+      "text": "Plinth W-3 recorded a stable net load of 1.84 kilograms until 9:42:18 p.m., when it fell to 0.00 kilograms. It stayed at 0.00 throughout the 10:00 p.m. blackout, and a post-incident self-test passed.",
+      "source_type": "sensor_log",
+      "source_reference": "plinth/W-3/load-audit",
+      "occurred_at": "2026-08-30T04:42:18Z"
+    },
+    {
+      "evidence_id": "E02",
+      "title": "The service-panel contact was bypassed",
+      "text": "The case entered approved calibration mode at 9:39:04 p.m. From 9:42:11 to 9:42:24, the hinge reported open while the magnetic contact reported closed. Inspectors recovered a square of matte gaffer tape over that contact.",
+      "source_type": "diagnostic_and_physical_inspection",
+      "source_reference": "case/G3/rear-panel-audit",
+      "occurred_at": "2026-08-30T04:42:11Z"
+    },
+    {
+      "evidence_id": "E03",
+      "title": "A polarized image insert masked the empty case",
+      "text": "Inspectors found a polarized acetate insert in the front guide. From the marked gala viewing line, it displayed a convincing image of Aurora Circuit. Its crop matches a catalog image available in the shared press folder.",
+      "source_type": "physical_inspection",
+      "source_reference": "case/G3/front-guide-item-1",
+      "occurred_at": "2026-08-30T05:05:12Z"
+    },
+    {
+      "evidence_id": "E04",
+      "title": "Rowan had exclusive gallery access at 9:42 p.m.",
+      "text": "An occupancy sweep marked Gallery 3 empty at 9:37:40 p.m. Rowan entered at 9:39:04 under work order G3-CAT-17. No other person entered before Rowan exited at 9:45:11.",
+      "source_type": "access_control",
+      "source_reference": "access/G3/door-and-occupancy-log",
+      "occurred_at": "2026-08-30T04:39:04Z"
+    },
+    {
+      "evidence_id": "E05",
+      "title": "Rowan denied approaching the case",
+      "text": "Rowan stated: 'I stayed behind the brass line the whole shoot. The nearest I got was about three meters, and I never touched the case.'",
+      "source_type": "recorded_interview",
+      "source_reference": "interview/rowan-pike/whereabouts",
+      "occurred_at": "2026-08-30T05:12:00Z"
+    },
+    {
+      "evidence_id": "E06",
+      "title": "Rowan's camera was beside the open service panel",
+      "text": "Frame RP_2207 on Rowan's camera card was captured at 9:42:07 p.m. Its calibrated focus distance is 0.55 meters, and the case's rear service panel is visibly ajar in the frame reflection.",
+      "source_type": "camera_metadata_and_image",
+      "source_reference": "media/RP_2207",
+      "occurred_at": "2026-08-30T04:42:07Z"
+    },
+    {
+      "evidence_id": "E07",
+      "title": "Rowan's hard case gained exactly 1.84 kilograms",
+      "text": "Rowan's hard case weighed 7.92 kilograms at entry and 9.76 kilograms at media-locker intake, a gain of exactly 1.84 kilograms. His equipment manifest records no added gear, and corridor footage shows no handoff.",
+      "source_type": "security_scale_and_video",
+      "source_reference": "security/gear-chain/RP-HC1",
+      "occurred_at": "2026-08-30T04:48:03Z"
+    },
+    {
+      "evidence_id": "E08",
+      "title": "The blackout cue ran automatically",
+      "text": "Cue BLACKOUT_90 was loaded earlier that afternoon and executed automatically at 10:00 p.m. The console audit records no manual input from 9:55 to 10:02 p.m.",
+      "source_type": "lighting_console_log",
+      "source_reference": "lighting/console/cue-audit",
+      "occurred_at": "2026-08-30T05:00:00Z"
+    },
+    {
+      "evidence_id": "E09",
+      "title": "Three suspects were independently elsewhere at 9:42 p.m.",
+      "text": "At 9:42:18 p.m., Mara is continuously visible on the greenroom rehearsal feed, Theo is visible inside the lighting booth, and Nia's body camera records her sealing a delivery at the loading bay. Rowan is the only suspect recorded in Gallery 3.",
+      "source_type": "cross_system_timeline",
+      "source_reference": "timeline/weight-drop/correlation",
+      "occurred_at": "2026-08-30T04:42:18Z"
+    }
+  ],
+  "timeline_events": [
+    {
+      "event_id": "weight_drop",
+      "starts_at": "2026-08-30T04:42:18Z",
+      "ends_at": null,
+      "subject_ids": ["aurora_circuit"],
+      "summary": "Plinth W-3 loses the artwork's full 1.84-kilogram net load.",
+      "source_reference": "plinth/W-3/load-audit"
+    },
+    {
+      "event_id": "blackout",
+      "starts_at": "2026-08-30T05:00:00Z",
+      "ends_at": "2026-08-30T05:01:30Z",
+      "subject_ids": ["theo_quinn"],
+      "summary": "The preloaded BLACKOUT_90 cue runs automatically.",
+      "source_reference": "lighting/console/cue-audit"
+    },
+    {
+      "event_id": "rowan_gallery_session",
+      "starts_at": "2026-08-30T04:39:04Z",
+      "ends_at": "2026-08-30T04:45:11Z",
+      "subject_ids": ["rowan_pike"],
+      "summary": "Rowan is the sole recorded occupant of Gallery 3.",
+      "source_reference": "access/G3/door-and-occupancy-log"
+    },
+    {
+      "event_id": "mara_greenroom",
+      "starts_at": "2026-08-30T04:38:31Z",
+      "ends_at": "2026-08-30T04:49:22Z",
+      "subject_ids": ["mara_vale"],
+      "summary": "Mara remains visible on the continuous greenroom rehearsal feed.",
+      "source_reference": "video/greenroom/rehearsal-feed"
+    },
+    {
+      "event_id": "theo_lighting_booth",
+      "starts_at": "2026-08-30T04:38:10Z",
+      "ends_at": "2026-08-30T04:46:05Z",
+      "subject_ids": ["theo_quinn"],
+      "summary": "Theo remains visible inside the lighting booth.",
+      "source_reference": "video/lighting-booth/interior"
+    },
+    {
+      "event_id": "nia_loading_bay",
+      "starts_at": "2026-08-30T04:39:40Z",
+      "ends_at": "2026-08-30T04:44:50Z",
+      "subject_ids": ["nia_brooks"],
+      "summary": "Nia's body camera records an uninterrupted loading-bay seal check.",
+      "source_reference": "bodycam/nia-brooks/loading-bay"
+    },
+    {
+      "event_id": "rowan_case_entry_weight",
+      "starts_at": "2026-08-30T04:34:12Z",
+      "ends_at": null,
+      "subject_ids": ["rowan_pike"],
+      "summary": "Rowan's hard case weighs 7.92 kilograms at museum entry.",
+      "source_reference": "security/gear-chain/RP-HC1/entry"
+    },
+    {
+      "event_id": "rowan_case_locker_weight",
+      "starts_at": "2026-08-30T04:48:03Z",
+      "ends_at": null,
+      "subject_ids": ["rowan_pike"],
+      "summary": "Rowan's hard case weighs 9.76 kilograms at media-locker intake.",
+      "source_reference": "security/gear-chain/RP-HC1/locker"
+    }
+  ],
+  "reveal_routes": [
+    {
+      "tool_name": "inspect_location",
+      "target_id": "display_case",
+      "topic": null,
+      "summary": "The display case yields three source-backed observations about timing and concealment.",
+      "evidence_ids": ["E01", "E02", "E03"]
+    },
+    {
+      "tool_name": "inspect_location",
+      "target_id": "media_locker",
+      "topic": null,
+      "summary": "The checked camera card contains a close-range frame from the critical minute.",
+      "evidence_ids": ["E06"]
+    },
+    {
+      "tool_name": "inspect_location",
+      "target_id": "security_screening",
+      "topic": null,
+      "summary": "Security records allow the same hard case to be compared at two checkpoints.",
+      "evidence_ids": ["E07"]
+    },
+    {
+      "tool_name": "inspect_location",
+      "target_id": "lighting_booth",
+      "topic": null,
+      "summary": "The console audit distinguishes an automatic cue from manual activity.",
+      "evidence_ids": ["E08"]
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "mara_vale",
+      "topic": "whereabouts",
+      "summary": "Mara says she was on the continuous greenroom rehearsal feed during the catalog shoot and asks investigators to verify it.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "mara_vale",
+      "topic": "case_access",
+      "summary": "Mara confirms that she approved calibration mode for the catalog shoot, which temporarily disengaged the motor lock for filter adjustment.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "theo_quinn",
+      "topic": "whereabouts",
+      "summary": "Theo says he remained in the isolated lighting booth during the relevant setup window and points investigators to its interior camera.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "theo_quinn",
+      "topic": "blackout",
+      "summary": "Theo says BLACKOUT_90 was a scheduled automatic cue and suggests checking the console audit rather than accepting his statement.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "nia_brooks",
+      "topic": "whereabouts",
+      "summary": "Nia says her body camera recorded her sealing a delivery at the loading bay during the catalog shoot.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "nia_brooks",
+      "topic": "security",
+      "summary": "Nia explains that hard equipment cases are weighed both at entry and when checked into the media locker.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "rowan_pike",
+      "topic": "whereabouts",
+      "summary": "Rowan gives a definite account of how close he came to the artwork.",
+      "evidence_ids": ["E05"]
+    },
+    {
+      "tool_name": "interview_suspect",
+      "target_id": "rowan_pike",
+      "topic": "equipment",
+      "summary": "Rowan says his hard case held only the equipment listed on his entry manifest and that its contents did not change.",
+      "evidence_ids": []
+    },
+    {
+      "tool_name": "compare_timeline",
+      "target_id": "weight_drop",
+      "topic": null,
+      "summary": "Correlating the plinth event with access control and independent recordings isolates the actual 9:42 p.m. opportunity window.",
+      "evidence_ids": ["E04", "E09"]
+    },
+    {
+      "tool_name": "compare_timeline",
+      "target_id": "blackout",
+      "topic": null,
+      "summary": "Comparing the blackout with the plinth log shows that discovery and removal occurred at different times.",
+      "evidence_ids": ["E01", "E08"]
+    }
+  ]
+}
