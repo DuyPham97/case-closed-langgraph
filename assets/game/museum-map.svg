@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="map-title map-desc" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">
+  <title id="map-title">Lumen Museum investigation map</title>
+  <desc id="map-desc">A floor plan showing Gallery 3, the media locker, security screening, and the lighting booth.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111a1c"/>
+      <stop offset="0.55" stop-color="#172326"/>
+      <stop offset="1" stop-color="#0d1517"/>
+    </linearGradient>
+    <linearGradient id="gallery-floor" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#283234"/>
+      <stop offset="1" stop-color="#1c2628"/>
+    </linearGradient>
+    <linearGradient id="service-floor" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#222e31"/>
+      <stop offset="1" stop-color="#182124"/>
+    </linearGradient>
+    <radialGradient id="crime-glow">
+      <stop offset="0" stop-color="#e7b96b" stop-opacity="0.38"/>
+      <stop offset="0.58" stop-color="#e7b96b" stop-opacity="0.09"/>
+      <stop offset="1" stop-color="#e7b96b" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#050809" flood-opacity="0.62"/>
+    </filter>
+    <filter id="soft-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#8aa09c" stroke-width="1" opacity="0.055"/>
+    </pattern>
+    <style>
+      .room { stroke:#6d807d; stroke-width:2; }
+      .inner { fill:none; stroke:#78908b; stroke-width:1.5; opacity:.42; }
+      .door { fill:none; stroke:#d7aa62; stroke-width:5; stroke-linecap:round; }
+      .route { fill:none; stroke:#81948f; stroke-width:3; stroke-dasharray:9 13; opacity:.45; }
+      .eyebrow { font:600 16px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:4px; fill:#d7aa62; }
+      .room-name { font:700 27px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:1.4px; fill:#f4eddf; }
+      .room-detail { font:500 16px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:1.2px; fill:#a8b7b3; }
+      .number { font:800 22px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; fill:#172022; text-anchor:middle; dominant-baseline:middle; }
+      .micro { font:600 13px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:2.2px; fill:#81948f; }
+      .map-line { fill:none; stroke:#d7aa62; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+      .hotspot { cursor:pointer; }
+      .hotspot .pin { transition:transform .18s ease, filter .18s ease; transform-box:fill-box; transform-origin:center; }
+      .hotspot:hover .pin { transform:scale(1.08); filter:url(#soft-glow); }
+      .hotspot:hover .room { stroke:#e7b96b; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" rx="34" fill="url(#background)"/>
+  <rect width="1600" height="900" rx="34" fill="url(#grid)"/>
+  <path d="M54 102H1546" stroke="#6d807d" stroke-width="1" opacity=".35"/>
+  <text x="62" y="58" class="eyebrow">LUMEN MUSEUM · EAST WING</text>
+  <text x="62" y="86" class="micro">INVESTIGATION MAP</text>
+  <g transform="translate(1465 38)">
+    <path d="M24 44V4M24 4L14 20M24 4l10 16" class="map-line"/>
+    <text x="24" y="64" text-anchor="middle" class="micro">N</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M88 150H920V665H1270V828H88Z" fill="url(#gallery-floor)" class="room"/>
+    <rect x="962" y="150" width="550" height="294" rx="3" fill="url(#service-floor)" class="room"/>
+    <rect x="962" y="484" width="260" height="181" rx="3" fill="url(#service-floor)" class="room"/>
+    <rect x="1260" y="484" width="252" height="344" rx="3" fill="url(#service-floor)" class="room"/>
+  </g>
+
+  <path d="M920 404h42M920 610h42M1222 574h38M1120 444v40" class="door"/>
+  <path d="M919 404a42 42 0 0 1 42 42M919 610a42 42 0 0 0 42-42M1222 574a38 38 0 0 0 38-38M1120 444a40 40 0 0 1 40 40" class="inner"/>
+
+  <g opacity=".68">
+    <path d="M918 470H540V700H1282" class="route"/>
+    <path d="M1120 470V574H1386" class="route"/>
+    <circle cx="540" cy="700" r="5" fill="#d7aa62"/>
+    <circle cx="1120" cy="470" r="5" fill="#d7aa62"/>
+  </g>
+
+  <g id="gallery-3" class="hotspot" data-action-id="inspect_display_case">
+    <rect x="108" y="170" width="792" height="475" rx="5" fill="none" class="inner"/>
+    <ellipse cx="499" cy="405" rx="244" ry="190" fill="url(#crime-glow)"/>
+    <rect x="380" y="320" width="238" height="176" rx="16" fill="#172022" stroke="#90a7a1" stroke-width="3"/>
+    <path d="M402 348h194v112H402Z" fill="#0f1719" stroke="#d7aa62" stroke-width="2"/>
+    <path d="M449 460v35M549 460v35M420 496h158" class="inner"/>
+    <path d="M461 398h76M499 360v76" stroke="#d7aa62" stroke-width="2" opacity=".5"/>
+    <circle cx="499" cy="398" r="13" fill="none" stroke="#ef6a5b" stroke-width="3" filter="url(#soft-glow)"/>
+    <path d="M304 258h390M304 548h390" class="inner"/>
+    <g class="pin" transform="translate(160 210)">
+      <circle r="27" fill="#e7b96b"/>
+      <text class="number" y="1">01</text>
+    </g>
+    <text x="205" y="218" class="room-name">GALLERY 3</text>
+    <text x="205" y="246" class="room-detail">AURORA CIRCUIT DISPLAY</text>
+    <text x="140" y="606" class="micro">SCENE SEALED · 10:01 P.M.</text>
+  </g>
+
+  <g id="security-screening" class="hotspot" data-action-id="inspect_security_screening">
+    <path d="M982 170h510v254H982Z" fill="none" class="inner"/>
+    <rect x="1080" y="270" width="322" height="66" rx="7" fill="#162022" stroke="#738783" stroke-width="2"/>
+    <path d="M1120 270v66M1362 270v66" class="inner"/>
+    <rect x="1161" y="285" width="122" height="35" rx="5" fill="#0c1416" stroke="#d7aa62" stroke-width="2"/>
+    <text x="1222" y="308" text-anchor="middle" class="micro" fill="#d7aa62">00.00 KG</text>
+    <path d="M1040 376h404" class="inner"/>
+    <g class="pin" transform="translate(1026 210)">
+      <circle r="27" fill="#e7b96b"/>
+      <text class="number" y="1">02</text>
+    </g>
+    <text x="1070" y="218" class="room-name">SECURITY SCREENING</text>
+    <text x="1070" y="246" class="room-detail">STAFF ENTRANCE · EQUIPMENT SCALE</text>
+  </g>
+
+  <g id="media-locker" class="hotspot" data-action-id="inspect_media_locker">
+    <rect x="982" y="504" width="220" height="141" rx="3" fill="none" class="inner"/>
+    <path d="M1045 560h116v58h-116Z" fill="#121b1d" stroke="#788d89" stroke-width="2"/>
+    <path d="M1061 546h85v14M1103 560v58M1045 589h116" class="inner"/>
+    <circle cx="1150" cy="575" r="4" fill="#d7aa62"/>
+    <g class="pin" transform="translate(1014 528)">
+      <circle r="23" fill="#e7b96b"/>
+      <text class="number" y="1" style="font-size:18px">03</text>
+    </g>
+    <text x="1052" y="534" class="room-name" style="font-size:20px">MEDIA LOCKER</text>
+    <text x="1008" y="637" class="room-detail" style="font-size:13px">CHECKED EQUIPMENT</text>
+  </g>
+
+  <g id="lighting-booth" class="hotspot" data-action-id="inspect_lighting_booth">
+    <rect x="1280" y="504" width="212" height="304" rx="3" fill="none" class="inner"/>
+    <path d="M1320 640h132v78h-132Z" fill="#121b1d" stroke="#788d89" stroke-width="2"/>
+    <path d="M1336 656h31v15h-31M1376 656h31v15h-31M1416 656h20v15h-20M1336 683h100" class="map-line" opacity=".75"/>
+    <path d="M1343 718v34M1429 718v34" class="inner"/>
+    <g class="pin" transform="translate(1310 528)">
+      <circle r="23" fill="#e7b96b"/>
+      <text class="number" y="1" style="font-size:18px">04</text>
+    </g>
+    <text x="1348" y="534" class="room-name" style="font-size:20px">LIGHTING BOOTH</text>
+    <text x="1310" y="590" class="room-detail" style="font-size:13px">SHOW CONTROL</text>
+  </g>
+
+  <g transform="translate(122 754)">
+    <circle cx="13" cy="-5" r="7" fill="#e7b96b"/>
+    <text x="34" y="0" class="micro">AVAILABLE LEAD</text>
+    <path d="M210-5h42" class="route"/>
+    <text x="268" y="0" class="micro">STAFF CORRIDOR</text>
+  </g>
+  <text x="1468" y="860" text-anchor="end" class="micro">FLOOR 02 · EAST WING</text>
+</svg>

@@ -17,8 +17,8 @@ from case_closed.tools import create_case_tools
     ("method_name", "arguments", "expected_evidence_ids"),
     [
         ("inspect_location", ("display_case",), ["E01", "E02", "E03"]),
-        ("inspect_location", ("media_locker",), ["E06"]),
-        ("inspect_location", ("security_screening",), ["E07"]),
+        ("inspect_location", ("media_locker",), ["E06", "E10"]),
+        ("inspect_location", ("security_screening",), ["E04", "E07"]),
         ("inspect_location", ("lighting_booth",), ["E08"]),
         ("interview_suspect", ("rowan_pike", "whereabouts"), ["E05"]),
         ("compare_timeline", ("weight_drop",), ["E04", "E09"]),

@@ -43,6 +43,7 @@ def test_midnight_museum_public_case_is_complete_and_utc() -> None:
         "E07",
         "E08",
         "E09",
+        "E10",
     ]
     timestamps = [
         case.incident.discovered_at,
@@ -76,6 +77,7 @@ def test_solution_is_valid_against_public_case() -> None:
     assert solution.acceptable_evidence_sets == [
         ["E01", "E04", "E07"],
         ["E01", "E06", "E07", "E09"],
+        ["E01", "E06", "E10"],
     ]
 
 

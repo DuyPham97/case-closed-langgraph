@@ -1,1 +1,1 @@
-{"case_id":"midnight_museum","expected_culprit_id":"rowan_pike","max_rounds":6,"acceptable_evidence_sets":[["E01","E04","E07"],["E01","E06","E07","E09"]]}
+{"case_id":"midnight_museum","first_action_id":"inspect_display_case","free_form_action_id":"inspect_media_locker","expected_culprit_id":"rowan_pike","expected_evidence_ids":["E01","E02","E03","E06","E10"],"expected_tier":"solved"}

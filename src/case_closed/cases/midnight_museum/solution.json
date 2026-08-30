@@ -3,6 +3,7 @@
   "case_id": "midnight_museum",
   "culprit_id": "rowan_pike",
   "canonical_sequence": [
+    "A private collector paid Rowan Pike an advance to steal Aurora Circuit and deliver it after the gala.",
     "Rowan Pike prepared a polarized insert from a catalog image before the gala.",
     "Rowan entered Gallery 3 alone under the authorized catalog work order.",
     "While the case was in calibration mode, Rowan taped over the rear contact sensor and opened the service panel.",
@@ -12,7 +13,8 @@
   ],
   "acceptable_evidence_sets": [
     ["E01", "E04", "E07"],
-    ["E01", "E06", "E07", "E09"]
+    ["E01", "E06", "E07", "E09"],
+    ["E01", "E06", "E10"]
   ],
   "claim_rules": [
     {
@@ -44,6 +46,11 @@
       "claim_id": "rowan_transported_artwork",
       "description": "Rowan's hard case gained the artwork's exact mass before locker intake.",
       "accepted_evidence_sets": [["E07"]]
+    },
+    {
+      "claim_id": "rowan_private_buyer_motive",
+      "description": "A private collector paid Rowan to steal and deliver Aurora Circuit.",
+      "accepted_evidence_sets": [["E10"]]
     },
     {
       "claim_id": "blackout_was_automatic",

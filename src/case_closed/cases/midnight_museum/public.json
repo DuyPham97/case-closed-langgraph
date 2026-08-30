@@ -161,6 +161,14 @@
       "source_type": "cross_system_timeline",
       "source_reference": "timeline/weight-drop/correlation",
       "occurred_at": "2026-08-30T04:42:18Z"
+    },
+    {
+      "evidence_id": "E10",
+      "title": "A private buyer was waiting for Rowan's delivery",
+      "text": "A deleted draft recovered from Rowan's camera card promised that Aurora would leave the museum that night and asked the buyer to release the remaining payment after delivery. The card also held a transfer receipt for an advance paid to Rowan.",
+      "source_type": "recovered_correspondence",
+      "source_reference": "media/rowan-pike/private-buyer-draft",
+      "occurred_at": "2026-08-30T03:18:00Z"
     }
   ],
   "timeline_events": [
@@ -241,15 +249,15 @@
       "tool_name": "inspect_location",
       "target_id": "media_locker",
       "topic": null,
-      "summary": "The checked camera card contains a close-range frame from the critical minute.",
-      "evidence_ids": ["E06"]
+      "summary": "The checked camera card contains a close-range frame from the critical minute and a deleted exchange with a waiting buyer.",
+      "evidence_ids": ["E06", "E10"]
     },
     {
       "tool_name": "inspect_location",
       "target_id": "security_screening",
       "topic": null,
-      "summary": "Security records allow the same hard case to be compared at two checkpoints.",
-      "evidence_ids": ["E07"]
+      "summary": "The screening desk links one person's exclusive gallery access to an unexplained change in his equipment.",
+      "evidence_ids": ["E04", "E07"]
     },
     {
       "tool_name": "inspect_location",
