@@ -21,7 +21,7 @@ def render_app() -> None:
         page_title="Case Closed?",
         page_icon="🔎",
         layout="wide",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="auto",
     )
     _inject_styles()
 
@@ -59,7 +59,7 @@ def render_app() -> None:
         )
         st.caption("Model: Claude Haiku 4.5 (configurable)")
 
-    brief_column, board_column, evidence_column = st.columns([1.0, 1.25, 1.1], gap="large")
+    brief_column, board_column, evidence_column = st.columns([1.15, 1.1, 1.0], gap="large")
     result = cast(dict[str, object] | None, st.session_state.result)
 
     with brief_column:
@@ -93,9 +93,11 @@ def _new_thread_id() -> str:
 def _render_brief(public_case: PublicCase) -> None:
     st.markdown("### Case brief")
     st.write(public_case.brief)
-    st.markdown("### Suspects")
+    st.markdown("### Suspect roster")
     for suspect in public_case.suspects:
-        with st.container(border=True):
+        st.markdown(f"**{suspect.name}** · {suspect.role}")
+    with st.expander("Read suspect profiles"):
+        for suspect in public_case.suspects:
             st.markdown(f"**{suspect.name}** · {suspect.role}")
             st.caption(suspect.public_profile)
 
@@ -214,6 +216,17 @@ def _inject_styles() -> None:
                                    border-radius: .75rem; padding: .8rem; }
         [data-testid="stSidebar"] { background: #173f35; }
         [data-testid="stSidebar"] * { color: #f6f0df !important; }
+        [data-testid="stSidebar"] [data-testid="stCode"] pre { background: #111820; }
+        [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"],
+        [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"] * {
+            color: #173f35 !important;
+        }
+        @media (max-width: 900px) {
+            .block-container { padding-top: 4rem; }
+            .eyebrow { letter-spacing: .08em; line-height: 1.4; margin-bottom: 0; }
+            [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+            [data-testid="stColumn"] { flex: 1 1 100% !important; width: 100% !important; }
+        }
         </style>
         """,
         unsafe_allow_html=True,

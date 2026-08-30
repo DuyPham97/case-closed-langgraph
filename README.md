@@ -13,7 +13,7 @@ This is deliberately a small portfolio project: one polished mystery, one model,
 tools, and enough orchestration to show why a graph is useful without hiding the idea behind a
 large application.
 
-![Case Closed Streamlit caseboard](assets/caseboard.png)
+![Case Closed Streamlit caseboard](assets/caseboard.jpg)
 
 ## What it demonstrates
 

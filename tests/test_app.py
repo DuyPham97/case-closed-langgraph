@@ -17,3 +17,6 @@ def test_caseboard_renders_without_api_credentials() -> None:
     assert app.subheader[0].value == "Midnight at the Lumen Museum"
     assert app.sidebar.button[0].label == "Start a fresh case"
     assert app.button[0].label == "Begin investigation"
+    assert app.expander[0].label == "Read suspect profiles"
+    for suspect_name in ("Mara Vale", "Theo Quinn", "Nia Brooks", "Rowan Pike"):
+        assert any(suspect_name in markdown.value for markdown in app.markdown)
