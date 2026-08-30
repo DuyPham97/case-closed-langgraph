@@ -1,0 +1,22 @@
+flowchart TD
+    START([Start]) --> load[Load public case]
+    load --> plan[Claude plans next action]
+    plan --> validateAction{Valid action?}
+    validateAction -- retry --> plan
+    validateAction -- exhausted --> inconclusive[Inconclusive]
+    validateAction -- yes --> tool[Run deterministic LangChain tool]
+    tool --> record[Record and deduplicate evidence]
+    record --> assess[Claude assesses progress]
+    assess --> route{Next route}
+    route -- investigate --> plan
+    route -- human direction --> interrupt[LangGraph interrupt]
+    interrupt --> plan
+    route -- enough evidence --> verdict[Draft structured verdict]
+    route -- round limit --> verdict
+    verdict --> validateVerdict{Grounded citations?}
+    validateVerdict -- repair --> repair[Repair verdict]
+    repair --> validateVerdict
+    validateVerdict -- exhausted --> inconclusive
+    validateVerdict -- yes --> resolved[Resolved]
+    resolved --> END([End])
+    inconclusive --> END
