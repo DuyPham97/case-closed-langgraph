@@ -7,11 +7,13 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import streamlit as st
 
 from case_closed.case_store import CaseStore
 from case_closed.config import ConfigurationError, load_config
+from case_closed.game_catalog import get_game_action
 from case_closed.game_runtime import (
     PlayerGameRuntime,
     create_player_game_runtime,
@@ -41,7 +43,42 @@ EVIDENCE_ASSETS = {
     "E07": "security-screening.webp",
     "E08": "lighting-booth.webp",
     "E09": "timeline.webp",
-    "E10": "media-locker.webp",
+    "E10": "lighting-booth.webp",
+    "E11": "media-locker.webp",
+    "E12": "timeline.webp",
+    "E13": "mara-vale.webp",
+    "E14": "theo-quinn.webp",
+    "E15": "mara-vale.webp",
+    "E16": "security-screening.webp",
+    "E17": "rowan-pike.webp",
+    "E18": "timeline.webp",
+}
+ROOM_ASSETS = {
+    "display_case": "crime-scene.webp",
+    "media_locker": "media-locker.webp",
+    "security_screening": "security-screening.webp",
+    "lighting_booth": "lighting-booth.webp",
+}
+ROOM_RECORD_IDS = {
+    "display_case": ("E01", "E02", "E03", "E06"),
+    "media_locker": ("E07", "E11"),
+    "security_screening": ("E04", "E09"),
+    "lighting_booth": ("E08", "E10"),
+}
+ROOM_NOTES = {
+    "display_case": (
+        "Read the physical scene beside its instrument logs. The display changed before staff "
+        "realized anything was missing."
+    ),
+    "media_locker": (
+        "Checked camera gear, removable media, and the hard case stayed here after Rowan's shoot."
+    ),
+    "security_screening": (
+        "Door, occupancy, body-camera, and equipment measurements meet at this desk."
+    ),
+    "lighting_booth": (
+        "The show cue and the sculpture's morning controller work were managed from this room."
+    ),
 }
 
 
@@ -82,6 +119,8 @@ def _initialize_session() -> None:
         st.session_state.ui_error = None
     if "solution_revealed" not in st.session_state:
         st.session_state.solution_revealed = False
+    if "selected_room_id" not in st.session_state:
+        st.session_state.selected_room_id = "display_case"
 
 
 def _new_thread_id() -> str:
@@ -97,6 +136,7 @@ def _restart_case() -> None:
     st.session_state.game_result = None
     st.session_state.ui_error = None
     st.session_state.solution_revealed = False
+    st.session_state.selected_room_id = "display_case"
 
 
 def _render_sidebar(
@@ -127,15 +167,15 @@ def _render_sidebar(
             f"<div class='credit-row'>{dots}<strong>{remaining} / 2</strong></div>",
             unsafe_allow_html=True,
         )
-        st.caption("One location. One line of inquiry. Then you accuse.")
+        st.caption("Optional deep dives only. Browsing the entire case file is free.")
         st.markdown("<div class='side-rule'></div>", unsafe_allow_html=True)
         st.markdown(
             """
             <p class="side-label">CASE PROTOCOL</p>
             <ol class="side-steps">
-              <li>Search one location</li>
-              <li>Follow one lead</li>
-              <li>Name who, why, and how</li>
+              <li>Browse every scene, record, and suspect</li>
+              <li>Spend up to two credits testing a lead</li>
+              <li>Accuse whenever your theory is ready</li>
             </ol>
             """,
             unsafe_allow_html=True,
@@ -165,7 +205,7 @@ def _render_landing(public_case: PublicCase) -> None:
             <div class="dossier-card">
               <p class="card-label">YOUR CONSTRAINT</p>
               <div class="big-number">02</div>
-              <p>investigations before the museum reopens and the trail goes cold.</p>
+              <p>optional deep dives. The map, evidence, timeline, and suspect files stay open.</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -177,12 +217,12 @@ def _render_landing(public_case: PublicCase) -> None:
 
     action_column, note_column = st.columns([0.72, 1.28], vertical_alignment="center")
     with action_column:
-        if st.button("Enter Gallery 3", type="primary", width="stretch"):
+        if st.button("Open the case file", type="primary", width="stretch"):
             _start_game()
     with note_column:
         st.caption(
-            "Your first move is visual. Your second can be written in your own words. "
-            "After that, the accusation is yours."
+            "Read everything first. The dossier can be solved as written; credits let you "
+            "challenge an account or cross-check one narrow lead."
         )
     _render_ui_error()
 
@@ -228,90 +268,175 @@ def _render_case(
 
     st.markdown('<p class="case-kicker">ACTIVE CASE · GALLERY WING</p>', unsafe_allow_html=True)
     st.title(public_case.title)
-    _render_stage_bar(phase)
+    _render_status_strip(state, phase)
     _render_ui_error()
 
     if phase == "complete":
         _render_outcome(public_case, store, state)
         return
 
-    investigation_column, evidence_column = st.columns([1.45, 0.8], gap="large")
+    _render_case_browser(public_case, state)
+    st.markdown("<div class='case-divider'></div>", unsafe_allow_html=True)
+
+    investigation_column, context_column = st.columns([1.35, 0.65], gap="large")
     with investigation_column:
         if interrupt_payload is None:
             st.error("The case paused without a player prompt. Restart the case to continue.")
-        elif phase == "visual_choice":
-            _render_visual_choice(interrupt_payload)
         elif phase in {"free_form", "free_form_clarification"}:
             _render_free_form(interrupt_payload)
         elif phase == "accusation":
             _render_accusation(public_case, interrupt_payload)
         else:
             st.error("The current case step is unavailable. Restart the case to continue.")
-    with evidence_column:
-        _render_evidence_board(state)
+    with context_column:
+        _render_latest_deep_dive(state)
+        with st.expander("Open an optional hint"):
+            st.caption("Opening this hint does not spend a deep-dive credit.")
+            st.write(
+                "Separate the time of removal from the time of discovery. Then connect "
+                "opportunity, the changed equipment weight, and what was due to happen at 7 a.m."
+            )
 
 
-def _render_stage_bar(phase: str) -> None:
-    active_index = {
-        "visual_choice": 0,
-        "free_form": 1,
-        "free_form_clarification": 1,
-        "accusation": 2,
-        "complete": 3,
-    }.get(phase, 0)
-    labels = ("Search", "Follow a lead", "Accuse", "Verdict")
-    items_list: list[str] = []
-    for index, label in enumerate(labels):
-        stage_class = "active" if index == active_index else "done" if index < active_index else ""
-        items_list.append(
-            f'<div class="stage {stage_class}"><span>0{index + 1}</span>{label}</div>'
-        )
-    items = "".join(items_list)
-    st.markdown(f'<div class="stage-bar">{items}</div>', unsafe_allow_html=True)
-
-
-def _render_visual_choice(payload: Mapping[str, object]) -> None:
-    st.markdown("## Choose your first search")
-    st.write(
-        "You may inspect one marked location. Choose carefully; the museum will grant one search."
+def _render_status_strip(state: PlayerGameState, phase: str) -> None:
+    remaining = max(0, 2 - state["investigation_count"])
+    mode = "VERDICT" if phase == "complete" else "ACCUSATION" if phase == "accusation" else "OPEN"
+    st.markdown(
+        f"""
+        <div class="status-strip">
+          <div><span>CASE FILE</span><strong>OPEN</strong></div>
+          <div><span>DEEP-DIVE CREDITS</span><strong>{remaining} / 2</strong></div>
+          <div><span>CURRENT DESK</span><strong>{mode}</strong></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    st.image(_asset("museum-map.svg"), width="stretch")
-    _render_payload_error(payload)
 
-    actions = payload.get("actions", [])
-    if not isinstance(actions, list):
-        return
-    rows = [actions[index : index + 2] for index in range(0, len(actions), 2)]
-    for row in rows:
-        columns = st.columns(2, gap="medium")
-        for column, raw_action in zip(columns, row, strict=True):
-            if not isinstance(raw_action, Mapping):
-                continue
-            with column:
-                image_path = raw_action.get("image_path")
-                if isinstance(image_path, str):
-                    st.image(str(PROJECT_ROOT / image_path), width="stretch")
-                title = str(raw_action.get("title", "Search location"))
-                st.markdown(f"### {title}")
-                st.write(str(raw_action.get("description", "")))
-                action_id = str(raw_action.get("action_id", ""))
-                if st.button(
-                    title,
-                    key=f"visual-{action_id}",
-                    width="stretch",
-                ):
-                    _resume_game({"action_id": action_id}, "Searching the location…")
+
+def _render_case_browser(public_case: PublicCase, state: PlayerGameState) -> None:
+    deep_dive_count = max(
+        0,
+        len(state["discovered_evidence"]) - len(public_case.case_file_evidence_ids),
+    )
+    scene_tab, evidence_tab, suspects_tab, timeline_tab = st.tabs(
+        [
+            "Scene & map",
+            f"Evidence · {len(public_case.case_file_evidence_ids)} + {deep_dive_count}",
+            "People",
+            "Timeline",
+        ]
+    )
+    with scene_tab:
+        scene_column, brief_column = st.columns([1.35, 0.65], gap="large")
+        with scene_column:
+            st.image(_asset("crime-scene.webp"), width="stretch")
+        with brief_column:
+            st.markdown("### Incident brief")
+            st.write(public_case.brief)
+            st.markdown(
+                f"**Missing work:** {public_case.artwork.name}  \n"
+                f"**Mass:** {public_case.artwork.mass_kg:.2f} kg  \n"
+                "**Wing status:** sealed after discovery"
+            )
+        st.markdown("### Museum floor")
+        st.caption("Browse every marked room. Looking costs no credits.")
+        st.image(_asset("museum-map.svg"), width="stretch")
+        _render_room_browser(public_case)
+    with evidence_tab:
+        _render_evidence_board(public_case, state)
+    with suspects_tab:
+        st.caption(
+            "Public profiles are not testimony. Compare what each person could do with "
+            "where the records place them."
+        )
+        _render_suspect_roster(public_case)
+    with timeline_tab:
+        timeline_column, events_column = st.columns([0.8, 1.2], gap="large")
+        with timeline_column:
+            st.image(_asset("timeline.webp"), width="stretch")
+        with events_column:
+            st.markdown("### Known sequence")
+            for event in sorted(public_case.timeline_events, key=lambda item: item.starts_at):
+                st.markdown(
+                    f"**{_format_case_time(event.starts_at, public_case.display_timezone)}**  \n"
+                    f"{event.summary}"
+                )
+
+
+def _render_room_browser(public_case: PublicCase) -> None:
+    location_ids = {location.location_id for location in public_case.locations}
+    selected_room_id = str(st.session_state.selected_room_id)
+    if selected_room_id not in location_ids:
+        selected_room_id = public_case.locations[0].location_id
+        st.session_state.selected_room_id = selected_room_id
+
+    st.markdown("#### Select a room")
+    room_columns = st.columns(len(public_case.locations), gap="small")
+    for index, (column, location) in enumerate(
+        zip(room_columns, public_case.locations, strict=True),
+        start=1,
+    ):
+        with column:
+            if st.button(
+                f"{index:02d} · {location.name}",
+                key=f"browse-room-{location.location_id}",
+                type="primary" if location.location_id == selected_room_id else "secondary",
+                width="stretch",
+            ):
+                st.session_state.selected_room_id = location.location_id
+                st.rerun()
+
+    selected_location = next(
+        location for location in public_case.locations if location.location_id == selected_room_id
+    )
+    room_image, room_file = st.columns([1.15, 0.85], gap="large")
+    with room_image:
+        asset_name = ROOM_ASSETS.get(selected_room_id)
+        if asset_name is not None:
+            st.image(_asset(asset_name), width="stretch")
+    with room_file:
+        st.caption("FREE ROOM BROWSE · NO CREDIT SPENT")
+        st.markdown(f"### {selected_location.name}")
+        st.write(selected_location.description)
+        room_note = ROOM_NOTES.get(selected_room_id)
+        if room_note is not None:
+            st.write(room_note)
+    _render_room_records(public_case, selected_room_id)
+
+
+def _render_room_records(public_case: PublicCase, location_id: str) -> None:
+    record_ids = ROOM_RECORD_IDS.get(location_id, ())
+    records_by_id = {record.evidence_id: record for record in public_case.observations}
+    st.markdown("#### Records tied to this room")
+    for row_start in range(0, len(record_ids), 2):
+        row = record_ids[row_start : row_start + 2]
+        record_columns = st.columns(2, gap="medium")
+        for column, evidence_id in zip(record_columns[: len(row)], row, strict=True):
+            record = records_by_id[evidence_id]
+            with column, st.container(border=True):
+                st.caption(evidence_id)
+                st.markdown(f"**{record.title}**")
+                st.write(record.text)
+
+
+def _format_case_time(timestamp: object, timezone_name: str) -> str:
+    if not hasattr(timestamp, "astimezone"):
+        return "Time unavailable"
+    local = timestamp.astimezone(ZoneInfo(timezone_name))
+    rendered = local.strftime("%a, %b %d · %I:%M:%S %p")
+    return rendered.replace("· 0", "· ")
 
 
 def _render_free_form(payload: Mapping[str, object]) -> None:
     is_clarification = payload.get("phase") == "free_form_clarification"
-    st.markdown("## Your final investigation")
+    remaining = int(payload.get("investigations_remaining", 0))
+    st.markdown("## Optional deep dive")
     if is_clarification:
         st.warning(str(payload.get("prompt", "Narrow the lead.")))
     else:
         st.write(
-            "Ask a suspect, inspect another location, or compare events. Describe the lead in "
-            "your own words; only one investigation will be carried out."
+            "The open dossier is enough to solve the case. Spend a credit only when you want "
+            "to challenge an account, ask about someone else, or reconcile one specific record."
         )
     _render_payload_error(payload)
 
@@ -329,22 +454,28 @@ def _render_free_form(payload: Mapping[str, object]) -> None:
                     "Following the lead…",
                 )
 
-    with st.form("free-form-investigation"):
-        request = st.text_area(
-            "What do you investigate?",
-            placeholder=(
-                "Example: Compare the security records with Rowan's equipment case, "
-                "or ask Nia how staff gear was screened."
-            ),
-            height=130,
-        )
-        submitted = st.form_submit_button(
-            "Commit final investigation",
-            type="primary",
-            width="stretch",
-        )
-    if submitted:
-        _resume_game({"request": request}, "Following the lead…")
+    if remaining > 0:
+        with st.form("free-form-investigation"):
+            request = st.text_area(
+                "What do you want to dig into?",
+                placeholder=(
+                    "Example: Ask Theo who heard his warning about the controller, "
+                    "or challenge Rowan with the reflected service panel."
+                ),
+                height=130,
+            )
+            submitted = st.form_submit_button(
+                "Spend 1 deep-dive credit",
+                type="primary",
+                width="stretch",
+            )
+        if submitted:
+            _resume_game({"request": request}, "Following the lead…")
+    else:
+        st.info("Both deep-dive credits are spent. The complete dossier remains open above.")
+
+    if st.button("Make accusation now", key="accuse-now", width="stretch"):
+        _resume_game({"next_step": "accuse"}, "Opening the accusation file…")
 
 
 def _render_accusation(
@@ -354,7 +485,7 @@ def _render_accusation(
     st.markdown("## Make your accusation")
     st.write(
         "Name the culprit, then state why they wanted Aurora Circuit and how they removed it. "
-        "The case holds if the culprit is right and either your motive or method fits the evidence."
+        "The case closes when the culprit is right and either your motive or method fits the facts."
     )
     _render_payload_error(payload)
 
@@ -400,29 +531,63 @@ def _render_accusation(
         )
 
 
-def _render_evidence_board(state: PlayerGameState) -> None:
-    st.markdown('<p class="board-kicker">PINNED EVIDENCE</p>', unsafe_allow_html=True)
+def _render_evidence_board(public_case: PublicCase, state: PlayerGameState) -> None:
     evidence = state["discovered_evidence"]
-    if not evidence:
-        st.markdown(
-            """
-            <div class="empty-board">
-              <span>◇</span>
-              <p>The board is empty.<br>Your searches will pin what they uncover.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        return
-    for index, record in enumerate(evidence, start=1):
+    case_file_ids = set(public_case.case_file_evidence_ids)
+    case_file = [record for record in evidence if record["evidence_id"] in case_file_ids]
+    deep_dives = [record for record in evidence if record["evidence_id"] not in case_file_ids]
+
+    st.markdown("### Open dossier")
+    st.caption(
+        "All twelve records were available when the wing was sealed. Titles are descriptive, "
+        "not conclusions; the comparisons are yours to make."
+    )
+    _render_evidence_grid(case_file, "DOSSIER")
+    if deep_dives:
+        st.markdown("### Deep-dive notes")
+        st.caption("These follow-up findings came from the credits you chose to spend.")
+        _render_evidence_grid(deep_dives, "FOLLOW-UP")
+
+
+def _render_evidence_grid(
+    evidence: list[Mapping[str, object]],
+    label: str,
+) -> None:
+    for row_start in range(0, len(evidence), 3):
+        row = evidence[row_start : row_start + 3]
+        columns = st.columns(3, gap="medium")
+        for offset, (column, record) in enumerate(
+            zip(columns[: len(row)], row, strict=True),
+            start=1,
+        ):
+            with column, st.container(border=True):
+                evidence_id = str(record.get("evidence_id", ""))
+                filename = EVIDENCE_ASSETS.get(evidence_id)
+                if filename is not None:
+                    st.image(_asset(filename), width="stretch")
+                st.caption(f"{label} {row_start + offset:02d}")
+                st.markdown(f"**{record.get('title', 'Recovered evidence')}**")
+                st.write(str(record.get("text", "")))
+
+
+def _render_latest_deep_dive(state: PlayerGameState) -> None:
+    if not state["completed_action_ids"]:
         with st.container(border=True):
-            evidence_id = str(record.get("evidence_id", ""))
-            filename = EVIDENCE_ASSETS.get(evidence_id)
-            if filename is not None:
-                st.image(_asset(filename), width="stretch")
-            st.caption(f"CLUE {index:02d}")
-            st.markdown(f"**{record.get('title', 'Recovered evidence')}**")
-            st.write(str(record.get("text", "")))
+            st.markdown("### No credit spent")
+            st.write(
+                "That is a valid strategy. Read the dossier, form a theory, and accuse without "
+                "opening any follow-up if the records already convince you."
+            )
+        return
+    action = get_game_action(state["completed_action_ids"][-1])
+    observation = state["last_observation"]
+    summary = ""
+    if isinstance(observation, Mapping):
+        summary = str(observation.get("summary", "")).split("\n\n", maxsplit=1)[0]
+    with st.container(border=True):
+        st.caption("LATEST DEEP DIVE")
+        st.markdown(f"### {action.title}")
+        st.write(summary or "The follow-up note is pinned in the evidence tab.")
 
 
 def _render_outcome(
@@ -446,16 +611,14 @@ def _render_outcome(
     )
 
     _render_match_cards(result)
-    analysis_column, evidence_column = st.columns([1.25, 0.75], gap="large")
-    with analysis_column:
-        st.markdown("## Closing analysis")
-        st.write(debrief.summary)
-        for item in debrief.evidence_analysis:
-            st.markdown(f"- {item}")
-        st.markdown(f"*{debrief.closing_line}*")
-        _render_reconstruction(public_case, store, state["case_id"])
-    with evidence_column:
-        _render_evidence_board(state)
+    st.markdown("## Closing analysis")
+    st.write(debrief.summary)
+    for item in debrief.evidence_analysis:
+        st.markdown(f"- {item}")
+    st.markdown(f"*{debrief.closing_line}*")
+    _render_reconstruction(public_case, store, state["case_id"])
+    with st.expander("Review the complete case file"):
+        _render_evidence_board(public_case, state)
 
     if st.button("Investigate again", type="primary"):
         _restart_case()
@@ -596,25 +759,41 @@ def _inject_styles() -> None:
           font-size: 5rem;
           line-height: 1;
         }
-        .stage-bar {
+        .status-strip {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           border-top: 1px solid rgba(216, 206, 185, .2);
           border-bottom: 1px solid rgba(216, 206, 185, .2);
           margin: 2rem 0 2.4rem;
         }
-        .stage {
-          color: #5f685f;
+        .status-strip div {
+          display: flex;
+          flex-direction: column;
+          gap: .25rem;
+          padding: .9rem .25rem;
+        }
+        .status-strip span {
+          color: var(--muted);
           font-size: .72rem;
           font-weight: 800;
           letter-spacing: .09em;
-          padding: .9rem .25rem;
           text-transform: uppercase;
         }
-        .stage span { margin-right: .55rem; color: #59665f; }
-        .stage.active { color: var(--cream); border-bottom: 2px solid var(--oxblood); }
-        .stage.active span { color: var(--gold); }
-        .stage.done, .stage.done span { color: #789385; }
+        .status-strip strong { color: var(--cream); }
+        .case-divider {
+          height: 1px;
+          background: rgba(216, 206, 185, .2);
+          margin: 2.7rem 0;
+        }
+        [data-testid="stTabs"] [data-baseweb="tab-list"] {
+          gap: .45rem;
+          border-bottom: 1px solid rgba(216, 206, 185, .2);
+        }
+        [data-testid="stTabs"] [data-baseweb="tab"] {
+          color: var(--paper);
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
         [data-testid="stBaseButton-primary"] {
           background: var(--oxblood) !important;
           border: 1px solid #a9403b !important;
@@ -700,8 +879,7 @@ def _inject_styles() -> None:
         @media (max-width: 900px) {
           .block-container { padding-top: 4rem; }
           h1 { font-size: 3.1rem !important; }
-          .stage { font-size: .58rem; letter-spacing: .03em; }
-          .stage span { display: block; margin-bottom: .15rem; }
+          .status-strip { grid-template-columns: 1fr; }
           [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
           [data-testid="stColumn"] { flex: 1 1 100% !important; width: 100% !important; }
         }

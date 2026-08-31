@@ -3,18 +3,20 @@
   "case_id": "midnight_museum",
   "culprit_id": "rowan_pike",
   "canonical_sequence": [
-    "A private collector paid Rowan Pike an advance to steal Aurora Circuit and deliver it after the gala.",
-    "Rowan Pike prepared a polarized insert from a catalog image before the gala.",
-    "Rowan entered Gallery 3 alone under the authorized catalog work order.",
-    "While the case was in calibration mode, Rowan taped over the rear contact sensor and opened the service panel.",
-    "Rowan removed Aurora Circuit at 2026-08-30T04:42:18Z and placed the polarized insert in the display guide.",
-    "Rowan moved the 1.84-kilogram sculpture into his hard equipment case and checked that case into the media locker.",
-    "The scheduled blackout later exposed the empty display and misdirected attention toward the lighting system."
+    "Rowan Pike believed the next morning's controller migration would erase Iris Venn's original hand-timed pulse sequence.",
+    "After Mara denied a forty-eight-hour estate review, Rowan decided to hide Aurora Circuit until the estate could force a technical review.",
+    "Rowan prepared a polarized insert from a catalog image before the gala.",
+    "Rowan entered Gallery 3 alone under the authorized catalog work order while the case was in calibration mode.",
+    "Rowan taped over the rear contact sensor and opened the service panel at 9:42:11 p.m.; frame RP_2207 captured the open panel at 9:42:14 p.m.",
+    "Rowan removed Aurora Circuit from the plinth at 9:42:18 p.m.",
+    "Rowan placed the insert in the smart-glass guide and concealed the 1.84-kilogram sculpture in his hard equipment case.",
+    "The scheduled blackout later rebooted the smart glass, exposed the flat insert, and caused staff to discover the earlier theft."
   ],
   "acceptable_evidence_sets": [
     ["E01", "E04", "E07"],
-    ["E01", "E06", "E07", "E09"],
-    ["E01", "E06", "E10"]
+    ["E01", "E04", "E07", "E10", "E11", "E12"],
+    ["E02", "E03", "E06", "E07", "E10", "E14"],
+    ["E04", "E09", "E10", "E15", "E18"]
   ],
   "claim_rules": [
     {
@@ -29,38 +31,33 @@
     },
     {
       "claim_id": "visual_decoy_used",
-      "description": "A polarized image concealed the empty display from the gala viewing line.",
+      "description": "A polarized image concealed the empty display until the glass rebooted.",
       "accepted_evidence_sets": [["E03"]]
     },
     {
       "claim_id": "rowan_had_exclusive_opportunity",
       "description": "Rowan was the only suspect with access at the actual removal time.",
-      "accepted_evidence_sets": [["E04"], ["E06", "E09"]]
+      "accepted_evidence_sets": [["E04", "E09"], ["E04", "E06"]]
     },
     {
       "claim_id": "rowan_false_proximity_statement",
-      "description": "Rowan's statement about remaining three meters away conflicts with his camera record.",
-      "accepted_evidence_sets": [["E05", "E06"]]
+      "description": "Rowan's statement about remaining behind the brass line conflicts with his camera record.",
+      "accepted_evidence_sets": [["E05", "E06"], ["E05", "E17"]]
     },
     {
       "claim_id": "rowan_transported_artwork",
-      "description": "Rowan's hard case gained the artwork's exact mass before locker intake.",
-      "accepted_evidence_sets": [["E07"]]
+      "description": "Rowan's case gained the artwork's mass while remaining under his control.",
+      "accepted_evidence_sets": [["E07"], ["E07", "E18"]]
     },
     {
-      "claim_id": "rowan_private_buyer_motive",
-      "description": "A private collector paid Rowan to steal and deliver Aurora Circuit.",
-      "accepted_evidence_sets": [["E10"]]
+      "claim_id": "preservation_motive",
+      "description": "Rowan wanted to prevent the irreversible loss of Iris Venn's original timing and buy time for estate review.",
+      "accepted_evidence_sets": [["E10", "E11", "E12"], ["E10", "E14", "E15"]]
     },
     {
       "claim_id": "blackout_was_automatic",
-      "description": "The blackout executed automatically rather than through a manual console command.",
-      "accepted_evidence_sets": [["E08"]]
-    },
-    {
-      "claim_id": "other_suspects_elsewhere",
-      "description": "Independent recordings place Mara, Theo, and Nia away from Gallery 3 at the removal time.",
-      "accepted_evidence_sets": [["E09"]]
+      "description": "The blackout executed automatically and exposed rather than enabled the theft.",
+      "accepted_evidence_sets": [["E01", "E03", "E08"]]
     }
   ],
   "contradiction_pairs": [
@@ -72,12 +69,12 @@
   "exoneration_rules": [
     {
       "suspect_id": "mara_vale",
-      "summary": "The real removal occurred while Mara was continuously visible in the greenroom.",
+      "summary": "The removal occurred while Mara was continuously visible in the greenroom.",
       "evidence_ids": ["E01", "E09"]
     },
     {
       "suspect_id": "theo_quinn",
-      "summary": "Theo was in the lighting booth at the removal time, and the later blackout was automatic.",
+      "summary": "Theo was in the booth at the removal time, and the later blackout was automatic.",
       "evidence_ids": ["E08", "E09"]
     },
     {
@@ -87,8 +84,8 @@
     }
   ],
   "hints": [
-    "Treat the blackout as the discovery time, not necessarily the theft time.",
-    "Compare the plinth's weight change with the Gallery 3 access window.",
-    "Compare Aurora Circuit's mass with the photographer's equipment-case records."
+    "Treat the blackout as the discovery time, not the removal time.",
+    "Compare the artwork's mass with the two equipment-case measurements.",
+    "Ask what was scheduled to disappear the morning after the gala—and who cared enough to delay it."
   ]
 }

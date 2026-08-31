@@ -82,6 +82,7 @@ def public_case() -> PublicCase:
             ],
             timeline_anchor_ids=["blackout"],
         ),
+        case_file_evidence_ids=["ev-1"],
         observations=evidence,
         timeline_events=[
             TimelineEvent(

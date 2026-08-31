@@ -17,12 +17,14 @@ from case_closed.tools import create_case_tools
     ("method_name", "arguments", "expected_evidence_ids"),
     [
         ("inspect_location", ("display_case",), ["E01", "E02", "E03"]),
-        ("inspect_location", ("media_locker",), ["E06", "E10"]),
         ("inspect_location", ("security_screening",), ["E04", "E07"]),
         ("inspect_location", ("lighting_booth",), ["E08"]),
-        ("interview_suspect", ("rowan_pike", "whereabouts"), ["E05"]),
-        ("compare_timeline", ("weight_drop",), ["E04", "E09"]),
-        ("compare_timeline", ("blackout",), ["E01", "E08"]),
+        ("interview_suspect", ("mara_vale", "migration"), ["E13"]),
+        ("interview_suspect", ("theo_quinn", "controller_warning"), ["E14"]),
+        ("interview_suspect", ("mara_vale", "rowan_history"), ["E15"]),
+        ("interview_suspect", ("nia_brooks", "locker_request"), ["E16"]),
+        ("interview_suspect", ("rowan_pike", "camera_frame"), ["E17"]),
+        ("compare_timeline", ("rowan_case_chain",), ["E18"]),
     ],
 )
 def test_public_routes_return_expected_evidence(
@@ -40,23 +42,23 @@ def test_public_routes_return_expected_evidence(
     assert all(f"[{evidence_id}]" in result.summary for evidence_id in expected_evidence_ids)
 
 
-def test_scripted_interview_without_evidence_reports_no_new_evidence() -> None:
+def test_scripted_interview_returns_a_persistent_follow_up() -> None:
     result = CaseStore().interview_suspect(
         DEFAULT_CASE_ID,
         "mara_vale",
-        "whereabouts",
+        "migration",
     )
 
-    assert result.evidence_ids == []
-    assert result.no_new_evidence is True
-    assert "greenroom" in result.summary
+    assert result.evidence_ids == ["E13"]
+    assert result.no_new_evidence is False
+    assert "commissioning note" in result.summary
 
 
 def test_repeated_tool_calls_are_byte_for_byte_deterministic() -> None:
     store = CaseStore()
 
-    first = store.compare_timeline(DEFAULT_CASE_ID, "weight_drop")
-    second = store.compare_timeline(DEFAULT_CASE_ID, "weight_drop")
+    first = store.compare_timeline(DEFAULT_CASE_ID, "rowan_case_chain")
+    second = store.compare_timeline(DEFAULT_CASE_ID, "rowan_case_chain")
 
     assert first.model_dump_json() == second.model_dump_json()
 

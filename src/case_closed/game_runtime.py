@@ -41,7 +41,7 @@ class PlayerGameRuntime:
         case_id: str = DEFAULT_CASE_ID,
         thread_id: str = "",
     ) -> dict[str, object]:
-        """Start a fresh case and pause for the first visual choice."""
+        """Start a fresh case and pause at the open dossier decision desk."""
         public_case = self.store.load_public_case(case_id)
         initial_state = create_player_game_state(public_case)
         return cast(

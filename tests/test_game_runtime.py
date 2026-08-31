@@ -12,14 +12,12 @@ from case_closed.game_schemas import (
     AccusationMatch,
     GameAction,
     GameActionRoute,
-    GameDebrief,
-    GameResult,
     PlayerAccusation,
 )
 
 
 class RuntimeFakeGateway:
-    """Provide one deterministic route and debrief for runtime testing."""
+    """Provide one deterministic route and theory match for runtime testing."""
 
     def route_free_form(
         self,
@@ -30,7 +28,7 @@ class RuntimeFakeGateway:
     ) -> GameActionRoute:
         del request, actions, completed_action_ids, discovered_evidence
         return GameActionRoute(
-            action_id="inspect_security_screening",
+            action_id="crosscheck_rowans_case",
             needs_clarification=False,
             clarification_question=None,
             suggested_action_ids=[],
@@ -45,23 +43,8 @@ class RuntimeFakeGateway:
         del accusation, canonical_story
         return AccusationMatch(motive_match=False, method_match=True)
 
-    def write_debrief(
-        self,
-        public_case: dict[str, object],
-        discovered_evidence: tuple[dict[str, object], ...],
-        accusation: PlayerAccusation,
-        result: GameResult,
-    ) -> GameDebrief:
-        del public_case, discovered_evidence, accusation, result
-        return GameDebrief(
-            headline="Case closed",
-            summary="The physical record and access history align.",
-            evidence_analysis=["The cited evidence forms one continuous chain."],
-            closing_line="Aurora Circuit is recovered.",
-        )
 
-
-def test_sqlite_runtime_resumes_all_three_player_boundaries(tmp_path: Path) -> None:
+def test_sqlite_runtime_resumes_optional_dive_and_accusation_boundaries(tmp_path: Path) -> None:
     config = AppConfig(anthropic_api_key="test-key")
     checkpoint_path = tmp_path / "game.sqlite"
 
@@ -71,17 +54,18 @@ def test_sqlite_runtime_resumes_all_three_player_boundaries(tmp_path: Path) -> N
         gateway=RuntimeFakeGateway(),
     ) as runtime:
         result = runtime.start("midnight_museum", "runtime-flow")
-        assert get_game_interrupt(result)["phase"] == "visual_choice"
-
-        result = runtime.resume(
-            "runtime-flow",
-            {"action_id": "inspect_display_case"},
-        )
         assert get_game_interrupt(result)["phase"] == "free_form"
 
         result = runtime.resume(
             "runtime-flow",
-            {"request": "Compare the equipment weights."},
+            {"request": "Reconcile Rowan's equipment case with the manifest."},
+        )
+        assert get_game_interrupt(result)["phase"] == "free_form"
+        assert result["investigation_count"] == 1
+
+        result = runtime.resume(
+            "runtime-flow",
+            {"next_step": "accuse"},
         )
         assert get_game_interrupt(result)["phase"] == "accusation"
 
@@ -89,8 +73,8 @@ def test_sqlite_runtime_resumes_all_three_player_boundaries(tmp_path: Path) -> N
             "runtime-flow",
             {
                 "suspect_id": "rowan_pike",
-                "motive": "He wanted to possess the sculpture.",
-                "method": "He hid it in his equipment case before the blackout.",
+                "motive": "He wanted to preserve Iris Venn's original timing.",
+                "method": "He hid the sculpture in his equipment case before the blackout.",
             },
         )
         assert get_game_interrupt(result) is None

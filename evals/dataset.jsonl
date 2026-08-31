@@ -1,1 +1,1 @@
-{"case_id":"midnight_museum","first_action_id":"inspect_display_case","free_form_action_id":"inspect_media_locker","expected_culprit_id":"rowan_pike","expected_evidence_ids":["E01","E02","E03","E06","E10"],"expected_tier":"solved"}
+{"case_id":"midnight_museum","deep_dive_action_ids":["ask_theo_who_heard_warning","crosscheck_rowans_case"],"expected_culprit_id":"rowan_pike","expected_base_evidence_ids":["E01","E06","E10","E11","E12"],"expected_follow_up_evidence_ids":["E14","E18"],"expected_tier":"solved"}

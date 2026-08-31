@@ -15,7 +15,7 @@ from case_closed.state import (
     merge_evidence,
 )
 
-GameStage = Literal["visual_choice", "free_form", "accusation", "complete"]
+GameStage = Literal["free_form", "accusation", "complete"]
 GameStatus = Literal["playing", "solved", "closed"]
 
 _PRIVATE_KEYS = frozenset(
@@ -78,19 +78,30 @@ class PlayerGameState(TypedDict):
 
 
 def create_player_game_state(public_case: PublicCase) -> PlayerGameState:
-    """Create the clean public state for a new two-investigation game."""
+    """Create public state with the base dossier and two optional deep dives."""
     case_payload = public_case.model_dump(mode="json")
+    evidence_by_id = {record.evidence_id: record for record in public_case.observations}
+    case_file_evidence = [
+        {
+            "evidence_id": record.evidence_id,
+            "title": record.title,
+            "text": record.text,
+            "occurred_at": record.occurred_at.isoformat(),
+        }
+        for evidence_id in public_case.case_file_evidence_ids
+        for record in (evidence_by_id[evidence_id],)
+    ]
     state = PlayerGameState(
         case_id=public_case.case_id,
         public_case=cast(
             JsonObject,
             {key: case_payload[key] for key in _PLAYER_CASE_KEYS},
         ),
-        stage="visual_choice",
+        stage="free_form",
         status="playing",
         investigation_count=0,
         completed_action_ids=[],
-        discovered_evidence=[],
+        discovered_evidence=case_file_evidence,
         trace=[],
         pending_action_id=None,
         free_form_request=None,
@@ -109,7 +120,7 @@ def validate_player_game_state(state: Mapping[str, object]) -> None:
     case_id = state.get("case_id")
     if not isinstance(case_id, str) or not case_id.strip():
         raise ValueError("case_id must be a non-empty string")
-    if state.get("stage") not in {"visual_choice", "free_form", "accusation", "complete"}:
+    if state.get("stage") not in {"free_form", "accusation", "complete"}:
         raise ValueError("stage is not supported")
     if state.get("status") not in {"playing", "solved", "closed"}:
         raise ValueError("status is not supported")

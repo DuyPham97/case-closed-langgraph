@@ -16,7 +16,11 @@ def test_initial_player_state_contains_no_private_solution() -> None:
     state = create_player_game_state(CaseStore().load_public_case())
 
     assert state["investigation_count"] == 0
-    assert state["stage"] == "visual_choice"
+    assert state["stage"] == "free_form"
+    assert [record["evidence_id"] for record in state["discovered_evidence"]] == [
+        f"E{index:02d}" for index in range(1, 13)
+    ]
+    assert all("source_reference" not in record for record in state["discovered_evidence"])
     assert "solution" not in state
     validate_player_game_state(state)
 

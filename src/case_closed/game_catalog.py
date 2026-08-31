@@ -1,4 +1,4 @@
-"""Curated player actions for the Midnight at the Lumen Museum mystery."""
+"""Curated deep-dive actions for Midnight at the Lumen Museum."""
 
 from __future__ import annotations
 
@@ -8,153 +8,72 @@ from case_closed.game_schemas import GameAction
 
 _GAME_ACTIONS: Final[tuple[GameAction, ...]] = (
     GameAction(
-        action_id="inspect_display_case",
-        title="Search the display case",
+        action_id="challenge_mara_on_migration",
+        title="Challenge Mara with commissioning note 14-B",
         description=(
-            "Examine the plinth, glass, locks, and service panel where Aurora Circuit vanished."
+            "Press the curator on whether the controller migration can truly be reversed."
         ),
-        category="location",
-        tool_name="inspect_location",
-        target_id="display_case",
-        is_visual=True,
-        image_path="assets/game/crime-scene.webp",
+        category="interview",
+        tool_name="interview_suspect",
+        target_id="mara_vale",
+        topic="migration",
+        image_path="assets/game/mara-vale.webp",
     ),
     GameAction(
-        action_id="inspect_security_screening",
-        title="Audit security screening",
+        action_id="ask_theo_who_heard_warning",
+        title="Ask Theo who heard the controller warning",
         description=(
-            "Compare room access with the equipment checks recorded before and after the gala."
+            "Find out who knew the original timing would be impossible to restore after migration."
         ),
-        category="location",
-        tool_name="inspect_location",
-        target_id="security_screening",
-        is_visual=True,
+        category="interview",
+        tool_name="interview_suspect",
+        target_id="theo_quinn",
+        topic="controller_warning",
+        image_path="assets/game/theo-quinn.webp",
+    ),
+    GameAction(
+        action_id="ask_mara_about_rowan_and_iris",
+        title="Ask Mara about Rowan's history with Iris Venn",
+        description=(
+            "Establish what Rowan did for the artist and her estate before this exhibition."
+        ),
+        category="interview",
+        tool_name="interview_suspect",
+        target_id="mara_vale",
+        topic="rowan_history",
+        image_path="assets/game/mara-vale.webp",
+    ),
+    GameAction(
+        action_id="audit_rowans_locker_request",
+        title="Audit Rowan's locker request",
+        description=("Cross-check what Rowan asked Nia before he checked in his equipment case."),
+        category="interview",
+        tool_name="interview_suspect",
+        target_id="nia_brooks",
+        topic="locker_request",
         image_path="assets/game/security-screening.webp",
     ),
     GameAction(
-        action_id="inspect_media_locker",
-        title="Open the media locker",
+        action_id="confront_rowan_with_frame",
+        title="Confront Rowan with frame RP_2207",
         description=(
-            "Examine the checked camera equipment and anything recorded during the critical minute."
+            "Make Rowan reconcile his first statement with the reflection beside the open panel."
         ),
-        category="location",
-        tool_name="inspect_location",
-        target_id="media_locker",
-        is_visual=True,
-        image_path="assets/game/media-locker.webp",
-    ),
-    GameAction(
-        action_id="inspect_lighting_booth",
-        title="Enter the lighting booth",
-        description=(
-            "Reconstruct how the blackout was triggered and whether someone touched the controls."
-        ),
-        category="location",
-        tool_name="inspect_location",
-        target_id="lighting_booth",
-        is_visual=True,
-        image_path="assets/game/lighting-booth.webp",
-    ),
-    GameAction(
-        action_id="ask_mara_whereabouts",
-        title="Question Mara about her whereabouts",
-        description="Ask the curator to account for the minutes before the blackout.",
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="mara_vale",
-        topic="whereabouts",
-        image_path="assets/game/mara-vale.webp",
-    ),
-    GameAction(
-        action_id="ask_mara_case_access",
-        title="Ask Mara who could open the display",
-        description=(
-            "Press the curator on calibration mode, access, and the unlocked service panel."
-        ),
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="mara_vale",
-        topic="case_access",
-        image_path="assets/game/mara-vale.webp",
-    ),
-    GameAction(
-        action_id="ask_theo_whereabouts",
-        title="Question Theo about his whereabouts",
-        description="Ask the lighting technician where he was during the suspected removal window.",
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="theo_quinn",
-        topic="whereabouts",
-        image_path="assets/game/theo-quinn.webp",
-    ),
-    GameAction(
-        action_id="ask_theo_blackout",
-        title="Ask Theo about the blackout",
-        description="Challenge him to explain the ninety-second cue and who could trigger it.",
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="theo_quinn",
-        topic="blackout",
-        image_path="assets/game/theo-quinn.webp",
-    ),
-    GameAction(
-        action_id="ask_nia_whereabouts",
-        title="Question Nia about her whereabouts",
-        description="Ask the security lead to account for herself before the alarm was raised.",
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="nia_brooks",
-        topic="whereabouts",
-        image_path="assets/game/nia-brooks.webp",
-    ),
-    GameAction(
-        action_id="ask_nia_security",
-        title="Ask Nia about screening procedures",
-        description="Find out how staff equipment was checked, weighed, and stored that night.",
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="nia_brooks",
-        topic="security",
-        image_path="assets/game/nia-brooks.webp",
-    ),
-    GameAction(
-        action_id="ask_rowan_whereabouts",
-        title="Question Rowan about the photo shoot",
-        description="Make the photographer describe exactly where he stood and what he touched.",
         category="interview",
         tool_name="interview_suspect",
         target_id="rowan_pike",
-        topic="whereabouts",
+        topic="camera_frame",
         image_path="assets/game/rowan-pike.webp",
     ),
     GameAction(
-        action_id="ask_rowan_equipment",
-        title="Ask Rowan about his equipment case",
-        description="Press him on what he carried into the museum and what he checked afterward.",
-        category="interview",
-        tool_name="interview_suspect",
-        target_id="rowan_pike",
-        topic="equipment",
-        image_path="assets/game/rowan-pike.webp",
-    ),
-    GameAction(
-        action_id="reconstruct_removal_window",
-        title="Reconstruct the 9:42 p.m. window",
-        description="Align room access, witness whereabouts, and the moment the plinth changed.",
-        category="records",
-        tool_name="compare_timeline",
-        target_id="weight_drop",
-        image_path="assets/game/timeline.webp",
-    ),
-    GameAction(
-        action_id="reconstruct_blackout",
-        title="Reconstruct the blackout",
+        action_id="crosscheck_rowans_case",
+        title="Reconcile Rowan's case weight with his manifest",
         description=(
-            "Compare the ninety-second darkness with events that happened earlier that night."
+            "Test Rowan's explanation against both weighings and the equipment chain of custody."
         ),
         category="records",
         tool_name="compare_timeline",
-        target_id="blackout",
+        target_id="rowan_case_chain",
         image_path="assets/game/timeline.webp",
     ),
 )
@@ -165,13 +84,8 @@ _ACTIONS_BY_ID: Final[dict[str, GameAction]] = {
 
 
 def all_game_actions() -> tuple[GameAction, ...]:
-    """Return every action that Claude may map a player's request onto."""
+    """Return every optional deep dive that Claude may map a request onto."""
     return _GAME_ACTIONS
-
-
-def visual_game_actions() -> tuple[GameAction, ...]:
-    """Return the four locations offered for the player's first investigation."""
-    return tuple(action for action in _GAME_ACTIONS if action.is_visual)
 
 
 def get_game_action(action_id: str) -> GameAction:

@@ -206,6 +206,7 @@ class PublicCase(FrozenModel):
     suspects: list[Suspect] = Field(min_length=1)
     locations: list[Location] = Field(min_length=1)
     available_actions: AvailableActions
+    case_file_evidence_ids: list[str] = Field(min_length=1)
     observations: list[EvidenceRecord] = Field(min_length=1)
     timeline_events: list[TimelineEvent] = Field(min_length=1)
     reveal_routes: list[RevealRoute] = Field(min_length=1)
@@ -220,14 +221,15 @@ class PublicCase(FrozenModel):
         _require_unique("suspect IDs", suspect_ids)
         _require_unique("location IDs", location_ids)
         _require_unique("evidence IDs", evidence_ids)
+        _require_unique("case-file evidence IDs", self.case_file_evidence_ids)
         _require_unique("timeline event IDs", timeline_event_ids)
         _require_unique(
             "interview suspect IDs",
             [option.suspect_id for option in self.available_actions.interview_options],
         )
 
-        if set(self.available_actions.location_ids) != set(location_ids):
-            raise ValueError("available location IDs must match declared locations")
+        if set(self.available_actions.location_ids) - set(location_ids):
+            raise ValueError("available location IDs must reference declared locations")
         if set(self.available_actions.timeline_anchor_ids) - set(timeline_event_ids):
             raise ValueError("timeline anchors must reference declared timeline events")
 
@@ -235,10 +237,16 @@ class PublicCase(FrozenModel):
             option.suspect_id: set(option.topic_ids)
             for option in self.available_actions.interview_options
         }
-        if set(interview_topics) != set(suspect_ids):
-            raise ValueError("every suspect must have interview options")
+        if set(interview_topics) - set(suspect_ids):
+            raise ValueError("interview options must reference declared suspects")
 
         evidence_id_set = set(evidence_ids)
+        case_file_evidence = set(self.case_file_evidence_ids)
+        unknown_case_file_evidence = case_file_evidence - evidence_id_set
+        if unknown_case_file_evidence:
+            raise ValueError(
+                f"case file references unknown evidence: {sorted(unknown_case_file_evidence)}"
+            )
         route_keys: list[tuple[ToolName, str, str | None]] = []
         reachable_evidence: set[str] = set()
         for route in self.reveal_routes:
@@ -260,9 +268,12 @@ class PublicCase(FrozenModel):
                 raise ValueError(f"unknown timeline anchor: {route.target_id}")
 
         _require_unique("tool routes", route_keys)
-        if reachable_evidence != evidence_id_set:
-            unreachable = sorted(evidence_id_set - reachable_evidence)
-            raise ValueError(f"all evidence must be reachable; unreachable: {unreachable}")
+        available_evidence = case_file_evidence | reachable_evidence
+        if available_evidence != evidence_id_set:
+            unavailable = sorted(evidence_id_set - available_evidence)
+            raise ValueError(
+                f"all evidence must be in the case file or reachable; unavailable: {unavailable}"
+            )
         return self
 
 

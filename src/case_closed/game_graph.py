@@ -1,4 +1,4 @@
-"""Player-driven LangGraph workflow for a two-investigation mystery."""
+"""Player-driven LangGraph workflow with two optional deep dives."""
 
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ from case_closed.case_store import CaseStore
 from case_closed.game_catalog import (
     all_game_actions,
     get_game_action,
-    visual_game_actions,
 )
 from case_closed.game_schemas import (
     AccusationMatch,
@@ -42,15 +41,6 @@ class PlayerGameGatewayProtocol(Protocol):
     ) -> GameActionRoute:
         """Map natural language to one allowed scripted action."""
 
-    def write_debrief(
-        self,
-        public_case: dict[str, object],
-        discovered_evidence: tuple[dict[str, object], ...],
-        accusation: PlayerAccusation,
-        result: GameResult,
-    ) -> GameDebrief:
-        """Write a grounded closing analysis for the public result."""
-
     def assess_accusation(
         self,
         accusation: PlayerAccusation,
@@ -65,55 +55,54 @@ def build_player_game_graph(
     *,
     checkpointer: BaseCheckpointSaver[str] | None = None,
 ) -> CompiledStateGraph:
-    """Compile the player-led game with three human interrupt boundaries."""
+    """Compile the player-led game with optional inquiry and accusation loops."""
     builder = StateGraph(PlayerGameState)
 
-    def request_visual_action(state: PlayerGameState) -> dict[str, object]:
-        payload = _visual_interrupt_payload()
-        while True:
-            response = interrupt(payload)
-            action_id = _read_text(response, "action_id")
-            visual_ids = {action.action_id for action in visual_game_actions()}
-            if action_id in visual_ids:
-                action = get_game_action(action_id)
-                return {
-                    "pending_action_id": action_id,
-                    "trace": _trace(
-                        "request_visual_action",
-                        "visual_choice_received",
-                        state,
-                        f"The player chose to {action.title.lower()}.",
-                    ),
-                }
-            payload = _visual_interrupt_payload(
-                "Choose one of the four locations shown on the museum map."
-            )
-
-    def request_free_form(state: PlayerGameState) -> dict[str, object]:
+    def request_next_move(state: PlayerGameState) -> dict[str, object]:
+        remaining = 2 - state["investigation_count"]
         payload: dict[str, object] = {
             "phase": "free_form",
-            "title": "Choose your final investigation",
+            "title": "Choose your next move",
             "prompt": (
-                "Describe what you want to investigate, compare, or ask a suspect. "
-                "Be as specific as you like."
+                "Use a deep-dive credit to pursue one line of inquiry, or make your "
+                "accusation whenever your theory is ready."
             ),
-            "investigations_remaining": 1,
+            "investigations_remaining": remaining,
+            "can_accuse": True,
         }
         while True:
             response = interrupt(payload)
-            request = _read_text(response, "request")
-            if request:
+            if _read_text(response, "next_step") == "accuse":
                 return {
+                    "stage": "accusation",
+                    "free_form_request": None,
+                    "routed_action": None,
+                    "pending_action_id": None,
+                    "trace": _trace(
+                        "request_next_move",
+                        "accusation_requested",
+                        state,
+                        "The detective is ready to state a theory.",
+                    ),
+                }
+            request = _read_text(response, "request")
+            if request and remaining > 0:
+                return {
+                    "stage": "free_form",
                     "free_form_request": request,
                     "routed_action": None,
                     "trace": _trace(
-                        "request_free_form",
+                        "request_next_move",
                         "free_form_received",
                         state,
-                        "The detective submitted a final line of inquiry.",
+                        "The detective submitted a line of inquiry.",
                     ),
                 }
-            payload["error"] = "Describe one investigation before continuing."
+            payload["error"] = (
+                "Both deep-dive credits are spent. Make your accusation."
+                if remaining == 0
+                else "Describe one inquiry, or make your accusation."
+            )
 
     def route_free_form(state: PlayerGameState) -> dict[str, object]:
         request = state["free_form_request"]
@@ -150,13 +139,28 @@ def build_player_game_graph(
             "title": "Narrow your investigation",
             "prompt": routed.clarification_question,
             "suggestions": options,
-            "investigations_remaining": 1,
+            "investigations_remaining": 2 - state["investigation_count"],
+            "can_accuse": True,
         }
         while True:
             response = interrupt(payload)
+            if _read_text(response, "next_step") == "accuse":
+                return {
+                    "stage": "accusation",
+                    "free_form_request": None,
+                    "routed_action": None,
+                    "pending_action_id": None,
+                    "trace": _trace(
+                        "clarify_free_form",
+                        "accusation_requested",
+                        state,
+                        "The detective set the unfinished inquiry aside.",
+                    ),
+                }
             request = _read_text(response, "request")
             if request:
                 return {
+                    "stage": "free_form",
                     "free_form_request": request,
                     "routed_action": None,
                     "pending_action_id": None,
@@ -204,7 +208,9 @@ def build_player_game_graph(
             "discovered_evidence": evidence,
             "last_observation": observation.model_dump(mode="json"),
             "pending_action_id": None,
-            "stage": "free_form" if next_count == 1 else "accusation",
+            "free_form_request": None,
+            "routed_action": None,
+            "stage": "free_form" if next_count < 2 else "accusation",
             "trace": _trace(
                 "execute_action",
                 "investigation_completed",
@@ -224,7 +230,7 @@ def build_player_game_graph(
         while True:
             response = interrupt(payload)
             try:
-                accusation = _validate_accusation(response, public_case, state)
+                accusation = _validate_accusation(response, public_case)
             except (TypeError, ValueError) as exc:
                 payload = _accusation_interrupt_payload(public_case, state, str(exc))
                 continue
@@ -279,60 +285,64 @@ def build_player_game_graph(
             ),
         }
 
-    def write_debrief(state: PlayerGameState) -> dict[str, object]:
-        accusation = PlayerAccusation.model_validate(state["accusation"])
+    def build_debrief(state: PlayerGameState) -> dict[str, object]:
         result = GameResult.model_validate(state["result"])
-        debrief = gateway.write_debrief(
-            _object_dict(state["public_case"]),
-            _object_tuple(state["discovered_evidence"]),
-            accusation,
-            result,
-        )
-        debrief = debrief.model_copy(update={"closing_line": _closing_line(result)})
+        public_case = store.load_public_case(state["case_id"])
+        debrief = _build_debrief(public_case, result)
         return {
             "debrief": debrief.model_dump(mode="json"),
             "stage": "complete",
             "status": "solved" if result.tier == "solved" else "closed",
             "trace": _trace(
-                "write_debrief",
+                "build_debrief",
                 "case_closed",
                 state,
                 debrief.headline,
             ),
         }
 
-    builder.add_node("request_visual_action", request_visual_action)
+    builder.add_node("request_next_move", request_next_move)
     builder.add_node("execute_action", execute_action)
-    builder.add_node("request_free_form", request_free_form)
     builder.add_node("route_free_form", route_free_form)
     builder.add_node("clarify_free_form", clarify_free_form)
     builder.add_node("request_accusation", request_accusation)
     builder.add_node("score_accusation", score_accusation)
-    builder.add_node("write_debrief", write_debrief)
+    builder.add_node("build_debrief", build_debrief)
 
-    builder.add_edge(START, "request_visual_action")
-    builder.add_edge("request_visual_action", "execute_action")
+    builder.add_edge(START, "request_next_move")
+    builder.add_conditional_edges(
+        "request_next_move",
+        _route_after_player_choice,
+        {"investigate": "route_free_form", "accuse": "request_accusation"},
+    )
     builder.add_conditional_edges(
         "execute_action",
         _route_after_execution,
-        {"free_form": "request_free_form", "accusation": "request_accusation"},
+        {"free_form": "request_next_move", "accusation": "request_accusation"},
     )
-    builder.add_edge("request_free_form", "route_free_form")
     builder.add_conditional_edges(
         "route_free_form",
         _route_after_intent,
         {"execute": "execute_action", "clarify": "clarify_free_form"},
     )
-    builder.add_edge("clarify_free_form", "route_free_form")
+    builder.add_conditional_edges(
+        "clarify_free_form",
+        _route_after_player_choice,
+        {"investigate": "route_free_form", "accuse": "request_accusation"},
+    )
     builder.add_edge("request_accusation", "score_accusation")
-    builder.add_edge("score_accusation", "write_debrief")
-    builder.add_edge("write_debrief", END)
+    builder.add_edge("score_accusation", "build_debrief")
+    builder.add_edge("build_debrief", END)
 
     return builder.compile(checkpointer=checkpointer)
 
 
 def _route_after_execution(state: PlayerGameState) -> str:
-    return "free_form" if state["investigation_count"] == 1 else "accusation"
+    return "free_form" if state["investigation_count"] < 2 else "accusation"
+
+
+def _route_after_player_choice(state: PlayerGameState) -> str:
+    return "accuse" if state["stage"] == "accusation" else "investigate"
 
 
 def _route_after_intent(state: PlayerGameState) -> str:
@@ -360,14 +370,13 @@ def _validate_routed_action(
         action_id=None,
         needs_clarification=True,
         clarification_question=(
-            routed.clarification_question
-            or "Which lead should we pursue with the final investigation?"
+            routed.clarification_question or "Which lead should we pursue with this deep dive?"
         ),
         suggested_action_ids=suggested,
         player_message=(
             routed.player_message
             if routed.needs_clarification
-            else "That lead is too broad. Narrow the final investigation."
+            else "That lead is too broad. Narrow the inquiry."
         ),
     )
 
@@ -375,9 +384,7 @@ def _validate_routed_action(
 def _validate_accusation(
     response: object,
     public_case: PublicCase,
-    state: PlayerGameState,
 ) -> PlayerAccusation:
-    del state
     if not isinstance(response, Mapping):
         raise TypeError("Choose a suspect and explain both motive and method.")
     suspect_id = _read_text(response, "suspect_id")
@@ -393,19 +400,6 @@ def _validate_accusation(
         motive=motive,
         method=method,
     )
-
-
-def _visual_interrupt_payload(error: str | None = None) -> dict[str, object]:
-    payload: dict[str, object] = {
-        "phase": "visual_choice",
-        "title": "Choose your first investigation",
-        "prompt": "Select one location on the museum map.",
-        "actions": [_public_action(action) for action in visual_game_actions()],
-        "investigations_remaining": 2,
-    }
-    if error is not None:
-        payload["error"] = error
-    return payload
 
 
 def _accusation_interrupt_payload(
@@ -433,7 +427,7 @@ def _accusation_interrupt_payload(
             }
             for record in state["discovered_evidence"]
         ],
-        "investigations_remaining": 0,
+        "investigations_remaining": max(0, 2 - state["investigation_count"]),
     }
     if error is not None:
         payload["error"] = error
@@ -479,16 +473,98 @@ def _result_message(result: GameResult) -> str:
     return "The accusation does not fit the case."
 
 
+def _build_debrief(public_case: PublicCase, result: GameResult) -> GameDebrief:
+    suspect = next(
+        (
+            suspect
+            for suspect in public_case.suspects
+            if suspect.suspect_id == result.accused_suspect_id
+        ),
+        None,
+    )
+    if suspect is None:
+        raise ValueError("game result references an unknown suspect")
+
+    if result.tier == "solved":
+        return GameDebrief(
+            headline="The case clicks shut",
+            summary=" ".join(
+                (
+                    f"{suspect.name} was the only recorded occupant of Gallery 3 when the plinth "
+                    "fell from 1.84 kilograms to zero at 9:42 p.m., before the automatic 10:00 "
+                    "p.m. blackout.",
+                    "The taped contact and polarized insert kept the empty display convincing "
+                    "until the smart glass rebooted and exposed the decoy at about 10:01 p.m.",
+                    "The hard equipment case then gained exactly 1.84 kilograms while its listed "
+                    "contents stayed unchanged.",
+                    _solved_match_summary(result),
+                )
+            ),
+            evidence_analysis=[
+                "The plinth changed at 9:42:18 p.m.; the preloaded blackout did not begin until "
+                "10:00 p.m.",
+                "The taped rear contact masked an open panel, and the polarized insert looked "
+                "flat after the smart glass rebooted.",
+                "The hard case gained exactly the sculpture's 1.84-kilogram mass with no manifest "
+                "change or recorded handoff.",
+                "The migration note, preservation annotations, and rejected delay request "
+                "document the threatened loss of Iris Venn's timing.",
+            ],
+            closing_line=_closing_line(result),
+        )
+
+    if result.tier == "partial":
+        headline = "The theory stops short"
+        summary = " ".join(
+            (
+                "Some part of the accusation is supported, but the three claims do not yet form "
+                "one coherent case.",
+                "The verdict cards show only which categories matched; the sealed reconstruction "
+                "remains unopened.",
+                "Review the dossier for independent records that connect opportunity, reason, "
+                "and physical sequence to the same person.",
+            )
+        )
+    else:
+        headline = "The theory does not hold"
+        summary = " ".join(
+            (
+                "The accusation does not yet align with the case record.",
+                "No conclusion follows from it, and the sealed reconstruction remains unopened.",
+                "Revisit the dossier and build a single chain from opportunity, reason, and "
+                "physical evidence before accusing again.",
+            )
+        )
+
+    return GameDebrief(
+        headline=headline,
+        summary=summary,
+        evidence_analysis=[
+            "Build the timeline from independent records before relying on anyone's account.",
+            "Test each personal statement against a separate physical or timestamped record.",
+            "A complete motive should explain why the event mattered at that moment, not merely "
+            "why the object was valuable.",
+            "A complete method should account for access, timing, and aftermath without "
+            "unsupported steps.",
+        ],
+        closing_line=_closing_line(result),
+    )
+
+
+def _solved_match_summary(result: GameResult) -> str:
+    if result.motive_match and result.method_match:
+        return "Both the preservation motive and the physical sequence match your theory."
+    if result.motive_match:
+        return "Your preservation motive matches the record, although the proposed method does not."
+    return "Your method matches the physical trail, although the proposed motive does not."
+
+
 def _closing_line(result: GameResult) -> str:
     if result.tier == "solved":
         return "The blackout did not hide the theft. It only told the museum when to start looking."
     if result.tier == "partial":
         return "A suspicion is not a case. The gallery waits for a theory that fits the facts."
     return "The lights are back, but this theory leaves the real trail in shadow."
-
-
-def _object_dict(value: Mapping[str, object]) -> dict[str, object]:
-    return dict(value)
 
 
 def _object_tuple(values: list[Mapping[str, object]]) -> tuple[dict[str, object], ...]:

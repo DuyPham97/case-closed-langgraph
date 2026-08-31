@@ -19,18 +19,23 @@ def main() -> None:
         checkpoint_path = Path(temporary_directory) / "checkpoints.sqlite"
         with create_player_game_runtime(config, checkpoint_path=checkpoint_path) as runtime:
             state = runtime.start(thread_id=thread_id)
-            visual_phase = get_game_interrupt(state)
-            state = runtime.resume(
-                thread_id,
-                {"action_id": "inspect_display_case"},
-            )
-            free_form_phase = get_game_interrupt(state)
+            open_dossier_phase = get_game_interrupt(state)
             state = runtime.resume(
                 thread_id,
                 {
                     "request": (
-                        "Open the media locker and inspect Rowan's camera card for close-up "
-                        "images or buyer messages."
+                        "Ask Theo who heard his warning that the original timing could not be "
+                        "restored after the migration."
+                    )
+                },
+            )
+            second_move_phase = get_game_interrupt(state)
+            state = runtime.resume(
+                thread_id,
+                {
+                    "request": (
+                        "Reconcile Rowan's equipment-case weight with the entry manifest and "
+                        "chain of custody."
                     )
                 },
             )
@@ -40,8 +45,8 @@ def main() -> None:
                 {
                     "suspect_id": "rowan_pike",
                     "motive": (
-                        "A private collector paid Rowan to steal Aurora Circuit and deliver it "
-                        "after the gala."
+                        "Rowan wanted to stop the museum from irreversibly erasing Iris Venn's "
+                        "original pulse timing and buy time for an estate review."
                     ),
                     "method": (
                         "He used calibration access to bypass the sensor, installed a polarized "
@@ -54,16 +59,19 @@ def main() -> None:
     result = state["result"]
     evidence_ids = [record["evidence_id"] for record in state["discovered_evidence"]]
     checks = {
-        "visual_interrupt": visual_phase is not None
-        and visual_phase.get("phase") == "visual_choice",
-        "free_form_interrupt": free_form_phase is not None
-        and free_form_phase.get("phase") == "free_form",
+        "open_dossier_interrupt": open_dossier_phase is not None
+        and open_dossier_phase.get("phase") == "free_form",
+        "two_optional_credits": open_dossier_phase is not None
+        and open_dossier_phase.get("investigations_remaining") == 2,
+        "second_move_interrupt": second_move_phase is not None
+        and second_move_phase.get("phase") == "free_form",
         "accusation_interrupt": accusation_phase is not None
         and accusation_phase.get("phase") == "accusation",
         "two_actions_used": state["investigation_count"] == 2,
         "free_form_routed": state["completed_action_ids"]
-        == ["inspect_display_case", "inspect_media_locker"],
-        "expected_evidence": set(evidence_ids) >= {"E01", "E02", "E03", "E06", "E10"},
+        == ["ask_theo_who_heard_warning", "crosscheck_rowans_case"],
+        "base_and_follow_up_evidence": set(evidence_ids)
+        >= {"E01", "E06", "E10", "E11", "E12", "E14", "E18"},
         "culprit_correct": result["culprit_correct"] is True,
         "motive_match": result["motive_match"] is True,
         "method_match": result["method_match"] is True,

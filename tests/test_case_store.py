@@ -34,17 +34,9 @@ def test_midnight_museum_public_case_is_complete_and_utc() -> None:
         "rowan_pike",
     ]
     assert [record.evidence_id for record in case.observations] == [
-        "E01",
-        "E02",
-        "E03",
-        "E04",
-        "E05",
-        "E06",
-        "E07",
-        "E08",
-        "E09",
-        "E10",
+        f"E{index:02d}" for index in range(1, 19)
     ]
+    assert case.case_file_evidence_ids == [f"E{index:02d}" for index in range(1, 13)]
     timestamps = [
         case.incident.discovered_at,
         case.incident.blackout_started_at,
@@ -56,7 +48,7 @@ def test_midnight_museum_public_case_is_complete_and_utc() -> None:
     assert all(timestamp.tzinfo is UTC for timestamp in timestamps)
 
 
-def test_every_evidence_record_is_reachable() -> None:
+def test_every_evidence_record_is_open_or_reachable() -> None:
     case = CaseStore().load_public_case()
 
     evidence_ids = {record.evidence_id for record in case.observations}
@@ -64,7 +56,47 @@ def test_every_evidence_record_is_reachable() -> None:
         evidence_id for route in case.reveal_routes for evidence_id in route.evidence_ids
     }
 
-    assert reachable_ids == evidence_ids
+    assert reachable_ids | set(case.case_file_evidence_ids) == evidence_ids
+
+
+def test_camera_frame_occurs_while_panel_is_open_and_before_removal() -> None:
+    case = CaseStore().load_public_case()
+    evidence = {record.evidence_id: record for record in case.observations}
+
+    assert evidence["E02"].occurred_at < evidence["E06"].occurred_at < evidence["E01"].occurred_at
+    assert evidence["E06"].occurred_at == datetime(2026, 8, 30, 4, 42, 14, tzinfo=UTC)
+    assert "9:42:14 p.m." in evidence["E06"].text
+
+
+def test_base_motive_is_inferred_and_explicit_intent_stays_in_follow_ups() -> None:
+    store = CaseStore()
+    case = store.load_public_case()
+    evidence = {record.evidence_id: record for record in case.observations}
+    base_motive_text = " ".join(evidence[evidence_id].text for evidence_id in ("E10", "E11", "E12"))
+
+    for explicit_statement in (
+        "archive before normalization",
+        "rowan requested",
+        "wanted to preserve",
+        "decided to hide",
+        "once it is normalized",
+    ):
+        assert explicit_statement not in base_motive_text.lower()
+
+    assert "G3-CAT-17" in evidence["E04"].text
+    assert "G3-CAT-17" in evidence["E12"].text
+    assert "R. Pike" in evidence["E11"].text
+    assert "once it is normalized" in evidence["E14"].text.lower()
+    assert "rowan entered the hold" in evidence["E15"].text.lower()
+
+    base_ids = set(case.case_file_evidence_ids)
+    solution = store.load_solution()
+    preservation_rule = next(
+        rule for rule in solution.claim_rules if rule.claim_id == "preservation_motive"
+    )
+    assert any(
+        set(evidence_set) <= base_ids for evidence_set in preservation_rule.accepted_evidence_sets
+    )
 
 
 def test_solution_is_valid_against_public_case() -> None:
@@ -74,10 +106,13 @@ def test_solution_is_valid_against_public_case() -> None:
 
     assert solution.case_id == public_case.case_id
     assert solution.culprit_id in {suspect.suspect_id for suspect in public_case.suspects}
-    assert solution.acceptable_evidence_sets == [
-        ["E01", "E04", "E07"],
-        ["E01", "E06", "E07", "E09"],
-        ["E01", "E06", "E10"],
+    assert solution.acceptable_evidence_sets[1] == [
+        "E01",
+        "E04",
+        "E07",
+        "E10",
+        "E11",
+        "E12",
     ]
 
 
@@ -104,9 +139,9 @@ def test_public_tools_work_without_solution_file(tmp_path: Path) -> None:
     shutil.copyfile(PUBLIC_PATH, case_directory / "public.json")
     store = CaseStore(tmp_path)
 
-    observation = store.inspect_location(DEFAULT_CASE_ID, "display_case")
+    observation = store.inspect_location(DEFAULT_CASE_ID, "security_screening")
 
-    assert observation.evidence_ids == ["E01", "E02", "E03"]
+    assert observation.evidence_ids == ["E04", "E07"]
     with pytest.raises(CaseNotFoundError, match=r"solution\.json"):
         store.load_solution(DEFAULT_CASE_ID)
 
