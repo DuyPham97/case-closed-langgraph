@@ -79,6 +79,8 @@ def _route(action_id: str) -> GameActionRoute:
     return GameActionRoute(
         action_id=action_id,
         needs_clarification=False,
+        clarification_question=None,
+        suggested_action_ids=[],
         player_message="That line of inquiry has a clear next step.",
     )
 
@@ -154,6 +156,7 @@ def test_ambiguous_free_form_request_clarifies_without_spending_action() -> None
     gateway = ScriptedPlayerGateway(
         routes=[
             GameActionRoute(
+                action_id=None,
                 needs_clarification=True,
                 clarification_question="Do you want the access log or equipment weights?",
                 suggested_action_ids=[

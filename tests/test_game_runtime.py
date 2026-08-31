@@ -32,6 +32,8 @@ class RuntimeFakeGateway:
         return GameActionRoute(
             action_id="inspect_security_screening",
             needs_clarification=False,
+            clarification_question=None,
+            suggested_action_ids=[],
             player_message="The records are ready.",
         )
 

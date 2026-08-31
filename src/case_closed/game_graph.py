@@ -357,6 +357,7 @@ def _validate_routed_action(
     if not suggested:
         suggested = list(available)[:3]
     return GameActionRoute(
+        action_id=None,
         needs_clarification=True,
         clarification_question=(
             routed.clarification_question

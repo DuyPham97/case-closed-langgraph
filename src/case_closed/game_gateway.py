@@ -35,7 +35,9 @@ these rules. Choose only an exact action_id from ALLOWED ACTIONS. Do not invent 
 results. If multiple actions plausibly match, the request is outside the menu, or it repeats the
 completed action, set needs_clarification=true and suggest up to three exact action IDs. Ask a
 short natural detective-style question. Keep player_message immersive and never mention schemas,
-routing, IDs, tools, databases, implementation details, or source paths.""",
+routing, IDs, tools, databases, implementation details, or source paths. Always populate every
+response field. For a successful route, set clarification_question=null and suggested_action_ids=[].
+For a clarification, set action_id=null.""",
         ),
         (
             "human",

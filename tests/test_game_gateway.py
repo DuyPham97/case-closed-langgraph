@@ -27,6 +27,8 @@ def test_gateway_uses_native_structured_output_for_all_calls() -> None:
     route = GameActionRoute(
         action_id="inspect_security_screening",
         needs_clarification=False,
+        clarification_question=None,
+        suggested_action_ids=[],
         player_message="The screening desk can answer that.",
     )
     debrief = GameDebrief(
@@ -92,7 +94,10 @@ def test_gateway_uses_native_structured_output_for_all_calls() -> None:
         call(AccusationMatch, method="json_schema"),
         call(GameDebrief, method="json_schema"),
     ]
-    assert "hidden" not in _message_text(route_model.invoke.call_args.args[0])
+    route_prompt = _message_text(route_model.invoke.call_args.args[0])
+    assert "clarification_question=null" in route_prompt
+    assert "action_id=null" in route_prompt
+    assert "hidden" not in route_prompt
     assert "hidden" not in _message_text(debrief_model.invoke.call_args.args[0])
     accusation_prompt = _message_text(accusation_model.invoke.call_args.args[0])
     assert "hard equipment case" in accusation_prompt

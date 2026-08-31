@@ -25,7 +25,10 @@ def test_visual_game_action_must_be_a_location() -> None:
 def test_successful_route_requires_an_action_id() -> None:
     with pytest.raises(ValidationError, match="successful routes need an action_id"):
         GameActionRoute(
+            action_id=None,
             needs_clarification=False,
+            clarification_question=None,
+            suggested_action_ids=[],
             player_message="I know where to look.",
         )
 
@@ -33,9 +36,22 @@ def test_successful_route_requires_an_action_id() -> None:
 def test_clarification_route_requires_a_question() -> None:
     with pytest.raises(ValidationError, match="clarification routes need a question"):
         GameActionRoute(
+            action_id=None,
             needs_clarification=True,
+            clarification_question=None,
+            suggested_action_ids=[],
             player_message="Narrow the lead.",
         )
+
+
+def test_route_provider_schema_requires_every_field() -> None:
+    assert set(GameActionRoute.model_json_schema()["required"]) == {
+        "action_id",
+        "needs_clarification",
+        "clarification_question",
+        "suggested_action_ids",
+        "player_message",
+    }
 
 
 @pytest.mark.parametrize("missing_field", ["motive", "method"])

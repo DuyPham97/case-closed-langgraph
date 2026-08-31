@@ -40,10 +40,10 @@ class GameAction(FrozenModel):
 class GameActionRoute(FrozenModel):
     """Claude's bounded interpretation of a player's free-form investigation."""
 
-    action_id: str | None = Field(default=None, min_length=1)
+    action_id: str | None = Field(min_length=1)
     needs_clarification: bool
-    clarification_question: str | None = Field(default=None, min_length=1)
-    suggested_action_ids: list[str] = Field(default_factory=list, max_length=3)
+    clarification_question: str | None = Field(min_length=1)
+    suggested_action_ids: list[str] = Field(max_length=3)
     player_message: str = Field(min_length=1)
 
     @model_validator(mode="after")
