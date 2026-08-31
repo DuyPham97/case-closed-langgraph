@@ -140,7 +140,7 @@ def _render_sidebar(
             """,
             unsafe_allow_html=True,
         )
-        if st.button("Restart case", use_container_width=True):
+        if st.button("Restart case", width="stretch"):
             _restart_case()
             st.rerun()
 
@@ -153,7 +153,7 @@ def _render_landing(public_case: PublicCase) -> None:
         "The sculpture was already gone.</p>",
         unsafe_allow_html=True,
     )
-    st.image(_asset("crime-scene.webp"), use_container_width=True)
+    st.image(_asset("crime-scene.webp"), width="stretch")
 
     brief_column, rules_column = st.columns([1.55, 0.9], gap="large")
     with brief_column:
@@ -177,7 +177,7 @@ def _render_landing(public_case: PublicCase) -> None:
 
     action_column, note_column = st.columns([0.72, 1.28], vertical_alignment="center")
     with action_column:
-        if st.button("Enter Gallery 3", type="primary", use_container_width=True):
+        if st.button("Enter Gallery 3", type="primary", width="stretch"):
             _start_game()
     with note_column:
         st.caption(
@@ -191,7 +191,7 @@ def _render_suspect_roster(public_case: PublicCase) -> None:
     columns = st.columns(4, gap="medium")
     for column, suspect in zip(columns, public_case.suspects, strict=True):
         with column:
-            st.image(_asset(SUSPECT_ASSETS[suspect.suspect_id]), use_container_width=True)
+            st.image(_asset(SUSPECT_ASSETS[suspect.suspect_id]), width="stretch")
             st.markdown(f"### {suspect.name}")
             st.caption(suspect.role.upper())
             st.write(suspect.public_profile)
@@ -275,7 +275,7 @@ def _render_visual_choice(payload: Mapping[str, object]) -> None:
     st.write(
         "You may inspect one marked location. Choose carefully; the museum will grant one search."
     )
-    st.image(_asset("museum-map.svg"), use_container_width=True)
+    st.image(_asset("museum-map.svg"), width="stretch")
     _render_payload_error(payload)
 
     actions = payload.get("actions", [])
@@ -290,7 +290,7 @@ def _render_visual_choice(payload: Mapping[str, object]) -> None:
             with column:
                 image_path = raw_action.get("image_path")
                 if isinstance(image_path, str):
-                    st.image(str(PROJECT_ROOT / image_path), use_container_width=True)
+                    st.image(str(PROJECT_ROOT / image_path), width="stretch")
                 title = str(raw_action.get("title", "Search location"))
                 st.markdown(f"### {title}")
                 st.write(str(raw_action.get("description", "")))
@@ -298,7 +298,7 @@ def _render_visual_choice(payload: Mapping[str, object]) -> None:
                 if st.button(
                     title,
                     key=f"visual-{action_id}",
-                    use_container_width=True,
+                    width="stretch",
                 ):
                     _resume_game({"action_id": action_id}, "Searching the location…")
 
@@ -341,7 +341,7 @@ def _render_free_form(payload: Mapping[str, object]) -> None:
         submitted = st.form_submit_button(
             "Commit final investigation",
             type="primary",
-            use_container_width=True,
+            width="stretch",
         )
     if submitted:
         _resume_game({"request": request}, "Following the lead…")
@@ -361,7 +361,7 @@ def _render_accusation(
     portrait_columns = st.columns(4, gap="small")
     for column, suspect in zip(portrait_columns, public_case.suspects, strict=True):
         with column:
-            st.image(_asset(SUSPECT_ASSETS[suspect.suspect_id]), use_container_width=True)
+            st.image(_asset(SUSPECT_ASSETS[suspect.suspect_id]), width="stretch")
             st.caption(f"{suspect.name} · {suspect.role}")
 
     suspect_names = {suspect.suspect_id: suspect.name for suspect in public_case.suspects}
@@ -387,7 +387,7 @@ def _render_accusation(
         submitted = st.form_submit_button(
             "Lock the accusation",
             type="primary",
-            use_container_width=True,
+            width="stretch",
         )
     if submitted:
         _resume_game(
@@ -419,7 +419,7 @@ def _render_evidence_board(state: PlayerGameState) -> None:
             evidence_id = str(record.get("evidence_id", ""))
             filename = EVIDENCE_ASSETS.get(evidence_id)
             if filename is not None:
-                st.image(_asset(filename), use_container_width=True)
+                st.image(_asset(filename), width="stretch")
             st.caption(f"CLUE {index:02d}")
             st.markdown(f"**{record.get('title', 'Recovered evidence')}**")
             st.write(str(record.get("text", "")))
