@@ -1,5 +1,9 @@
 # Case Closed? 🔎
 
+## [Play online →](https://midnight-lumen-museum.streamlit.app)
+
+Open the Lumen Museum case in your browser—no installation required.
+
 [![CI](https://github.com/DuyPham97/case-closed-langgraph/actions/workflows/ci.yml/badge.svg)](https://github.com/DuyPham97/case-closed-langgraph/actions/workflows/ci.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-173f35)
 ![LangChain](https://img.shields.io/badge/LangChain-structured%20AI-9a3c2f)
